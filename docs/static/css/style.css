@@ -205,3 +205,12 @@ footer { padding: 40px 0 60px; text-align: center; color: var(--ink-3); font-siz
 
 /* main table: only the row bands take the mouse, so hovering anywhere on a row works */
 #c-main svg :not(rect) { pointer-events: none; }
+
+/* Balanced line breaks: headings and short centred blocks split evenly instead of leaving
+   one word on the last line; body paragraphs avoid single-word last lines. */
+/* balance: centred text only. On left-aligned text inside a card it narrows the lines and
+   leaves an empty strip on the right, which looks worse than a short last line. */
+h1, h2, .subtitle, .lede, .kicker, figcaption, .note, .stat span, .big p { text-wrap: balance; }
+p, li, .tldr, .guarantee div, .status span, .mini p { text-wrap: pretty; }
+/* Long centred paragraphs are hard to read on a phone and cannot be balanced past six lines. */
+@media (max-width: 600px) { .lede, .note, figcaption { text-align: left; } }
