@@ -5,7 +5,6 @@
 Yuhang Jiang, University of Trento
 
 [Project page](https://avalon-s.github.io/MedianTE/) ·
-[Paper (PDF)](https://avalon-s.github.io/MedianTE/static/paper.pdf) ·
 [arXiv](https://arxiv.org/abs/2609.27167)
 
 Action-chunked policies such as ACT and Diffusion Policy predict every executed action
