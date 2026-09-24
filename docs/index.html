@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="sakura">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Median Temporal Ensembling</title>
+  <meta name="description" content="Median temporal ensembling: a one-line, training-free replacement for the weighted mean that action-chunked visuomotor policies use to combine overlapping predictions." />
+  <meta property="og:title" content="Median Temporal Ensembling" />
+  <meta property="og:description" content="Training-free robust aggregation for action-chunked visuomotor policies." />
+  <meta property="og:image" content="static/media/poster.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a class="brand" href="#top">Median <span>TE</span></a>
+    <ul>
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#video">Video</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#guarantee">Guarantee</a></li>
+      <li><a href="#boundary">Limits</a></li>
+      <li><a href="#bibtex">BibTeX</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="container">
+    <span class="eyebrow">Robot learning &middot; Robust aggregation &middot; Training-free</span>
+    <h1>Median Temporal Ensembling</h1>
+    <p class="subtitle">Training-Free Robust Aggregation for Action-Chunked Visuomotor Policies</p>
+    <p class="author"><a href="https://avalon-s.github.io/" target="_blank" rel="noopener">Yuhang Jiang</a></p>
+    <p class="affil">University of Trento &middot; <a href="mailto:jyhtjtj@gmail.com">jyhtjtj@gmail.com</a></p>
+    <div class="btns">
+      <a class="btn btn-primary" href="static/paper.pdf" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/></svg>Paper</a>
+      <a class="btn" id="arxivBtn" href="https://arxiv.org/abs/2609.27167" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 7h16v2H4zm0 7h10v2H4z"/></svg>arXiv</a>
+      <a class="btn" href="#video">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video</a>
+      <a class="btn" href="#bibtex">
+        <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.6H8zm0 3.5h8v1.6H8z"/></svg>BibTeX</a>
+      <span class="btn soon">
+        <svg viewBox="0 0 24 24"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0023.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Code <span class="tag">soon</span></span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat"><b>1 line</b><span>replaces the weighted mean; nothing is retrained</span></div>
+    <div class="stat"><b>25 / 25</b><span>settings where the median is never worse than the mean</span></div>
+    <div class="stat"><b>15</b><span>of them significantly better after Holm correction</span></div>
+    <div class="stat"><b>0</b><span>times it left the clean range, in 53,704 timesteps</span></div>
+    <div class="stat"><b>&lt;0.3%</b><span>of the cost of one decision</span></div>
+  </div>
+</div>
+
+<section class="block">
+  <div class="container narrow">
+    <div class="card tldr">
+      Action-chunked policies already predict every executed action several times. Temporal
+      ensembling averages those predictions, so a single corrupted one can pull the command
+      arbitrarily far. <strong>Taking the coordinate-wise median of the same predictions</strong>
+      is a one-line change with no retraining, and it keeps the command inside the range of the
+      clean predictions whenever fewer than half of them are corrupted.
+    </div>
+    <details class="abstract">
+      <summary>Read the abstract</summary>
+      <p>Action-chunked visuomotor policies predict overlapping trajectories, so every executed
+      action is covered by several predictions. Temporal ensembling smooths execution by combining
+      these predictions with an exponentially weighted mean. One corrupted prediction can move the
+      aggregate without bound: its breakdown point is 0. We use adversarial corruption to stress
+      this deployed aggregator and to compare two kinds of guarantee. A metric guarantee bounds the
+      response to a perturbation of a given size. A combinatorial guarantee instead bounds the
+      damage when at most q of the M candidates covering a timestep are corrupted, whatever their
+      size. Encoder adversarial fine-tuning recovers 44% of the loss under the published patch
+      attack, but only 7.3% after the attacker's step size is increased. By contrast, the
+      coordinate-wise median of the same candidate set keeps its recovered fraction flat as attack
+      optimisation increases. Median temporal ensembling costs one line and requires no
+      retraining. Across 25 (configuration, corruption-level) combinations it is never worse than
+      the mean and is significantly better in 15. It also transfers to a second policy class, and
+      it recovers performance under a failure with no attacker in the loop at all: camera frames
+      that arrive blank. Its effect on clean data is configuration-dependent, from -0.04 to +0.07.
+      We also give the boundary: corruption that shifts every covering prediction by the same
+      amount is invisible to this whole family of statistics, and no equivariant aggregator can
+      remove it.</p>
+    </details>
+  </div>
+</section>
+
+<section class="block alt" id="problem">
+  <div class="container">
+    <div class="kicker">The problem</div>
+    <h2>One corrupted prediction can drag the mean anywhere</h2>
+    <p class="lede">A policy like ACT or Diffusion Policy predicts a chunk of future actions, executes
+      the first few, then predicts again. By the time an action runs, several earlier chunks have
+      already predicted it. Below are seven such predictions for one action dimension. Corrupt some
+      of them and push.</p>
+    <div class="card widget" id="w-sparse"></div>
+  </div>
+</section>
+
+<section class="block" id="method">
+  <div class="container">
+    <div class="kicker">The method</div>
+    <h2>Swap the mean for a median. That is the whole change.</h2>
+    <p class="lede"><code>A</code> holds the overlapping predictions for the current timestep, one row
+      per query. The weighted mean is what ACT deploys; the median is ours.</p>
+    <div class="code-grid">
+      <div class="code-card before">
+        <header><span>Temporal ensembling (ACT)</span><span>exponentially weighted mean</span></header>
+<pre><span class="c"># age 0 = newest prediction</span>
+w = np.exp(-m * age)
+w = w / w.sum()
+action = (w[:, None] * A).sum(axis=0)</pre>
+      </div>
+      <div class="code-card after">
+        <header><span>Median temporal ensembling</span><span>ours</span></header>
+<pre><span class="c"># same candidates, same timestep</span>
+
+
+<span class="hl">action = np.median(A, axis=0)</span></pre>
+      </div>
+    </div>
+    <div class="card guarantee">
+      <div class="math">2q &lt; M</div>
+      <div>When fewer than half of the <em>M</em> covering predictions are corrupted, the median of
+        each coordinate lies between the smallest and the largest clean prediction, whatever values
+        the corrupted ones take. The guarantee depends on how many predictions are corrupted, not on
+        how large the corruption is. No retraining, no additional forward passes, and under 0.3% of
+        the cost of one decision.</div>
+    </div>
+  </div>
+</section>
+
+<section class="block alt" id="video">
+  <div class="container">
+    <div class="kicker">Video</div>
+    <h2>Watch it run</h2>
+    <div class="video-wrap">
+      <video controls preload="metadata" poster="static/media/poster.jpg" playsinline>
+        <source src="static/media/overview.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <p class="note">Rollouts are played at 1.5x speed. Narration is a synthesized voice; the subtitles follow it word for word.</p>
+  </div>
+</section>
+
+<section class="block" id="results">
+  <div class="container">
+    <div class="kicker">Results</div>
+    <h2>Never worse than the mean, across 25 settings</h2>
+    <p class="lede">Diffusion Policy on robomimic and PushT, two backbones and four execution strides,
+      under sparse burst corruption. Each row is one (configuration, corruption level) pair; the
+      line runs from the weighted mean to the median. Hover a row for its p-value.</p>
+    <div class="card chart-card">
+      <div class="legend">
+        <span><i style="background:var(--mean)"></i>weighted mean (deployed)</span>
+        <span><i style="background:var(--median)"></i>median (ours)</span>
+        <span>&#9733; significant after Holm correction over all 25</span>
+      </div>
+      <div class="chart" id="c-main"></div>
+    </div>
+    <div class="two">
+      <div class="card mini">
+        <h3>No attacker at all</h3>
+        <p>Blank camera frames on 2 of every 7 queries, the kind a driver that zero-fills on
+          timeout produces. Task: can.</p>
+        <div class="bars" data-bars='[["clean", 1.00, "ink"], ["blank frames, mean", 0.510, "mean"], ["blank frames, median", 0.690, "median"]]'></div>
+      </div>
+      <div class="card mini">
+        <h3>A second policy class</h3>
+        <p>An ACT policy on can at q=2. The mean wins no episode.</p>
+        <div class="bars" data-bars='[["weighted mean", 0.010, "mean"], ["median", 0.595, "median"]]'></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block alt" id="guarantee">
+  <div class="container">
+    <div class="kicker">Why the guarantee type matters</div>
+    <h2>A stronger attacker wears down a metric defence. The median holds.</h2>
+    <p class="lede">Encoder adversarial fine-tuning makes the encoder less sensitive to a perturbation
+      of a given size. It recovers 44% of the loss under the published patch attack and 7.3% once the
+      attacker's step size is raised. The median's recovered fraction stays flat as optimisation
+      effort grows.</p>
+    <div class="card chart-card">
+      <div class="legend" id="fig1-legend"></div>
+      <div class="chart" id="c-fig1"></div>
+      <p class="note" style="margin-top:4px">Vertical axis: fraction of the attack-induced loss that the
+        defence recovers; the perturbation bound is fixed throughout. Horizontal axis: optimisation
+        effort relative to each attack's own baseline, in PGD iterations for the burst curves and in
+        optimiser step size for the patch curves. Hollow stars mark the released patch. Error bars
+        are &plusmn;1 standard error.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="mechanism">
+  <div class="container narrow">
+    <div class="kicker">Mechanism</div>
+    <h2>Checked at every timestep</h2>
+    <p class="lede">We split the predictions at every timestep by whether their query was corrupted,
+      and counted how often each aggregator's output left the range of the clean ones. Over the
+      53,704 timesteps at which fewer than half were corrupted:</p>
+    <div class="big">
+      <div class="card median"><div class="n">0</div><p>times the <b>median</b> left the clean range</p></div>
+      <div class="card mean"><div class="n">81&ndash;93%</div><p>of those timesteps, the <b>weighted mean</b> did</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block alt" id="boundary">
+  <div class="container">
+    <div class="kicker">Boundary</div>
+    <h2>Where the median cannot help</h2>
+    <p class="lede">If every covering prediction is shifted by the same amount, the predictions still
+      agree with each other. Nothing is outvoted. This corruption is invisible to every statistic that
+      compares predictions with one another, and no equivariant aggregator, the median included, can
+      remove it. We state it as a limit of the method.</p>
+    <div class="card widget" id="w-common"></div>
+  </div>
+</section>
+
+<section class="block" id="qualitative">
+  <div class="container">
+    <div class="kicker">One episode</div>
+    <h2>Same seed, same attack, different aggregator</h2>
+    <figure>
+      <img src="static/img/qualitative.png" alt="Filmstrip of one can episode: the weighted mean fails and the median succeeds." loading="lazy" />
+      <figcaption>One episode of can at h=2, q=3, run twice from the same seed and under the same attack,
+        changing only the aggregator: the weighted mean (top) fails and the median (bottom) succeeds.
+        A star marks a corrupted query window. Frames are a third-person render for visualisation
+        only; the policy sees two 84&times;84 views.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="block alt" id="limits">
+  <div class="container narrow">
+    <div class="kicker">Limitations</div>
+    <h2>What this work does not show</h2>
+    <ul class="limits">
+      <li><b>Simulation only.</b> All results are in simulation (robomimic lift, can, square, and PushT); none is on hardware.</li>
+      <li><b>Rendered, not printed.</b> The physical patch is rendered into the observation, and the sensor faults are injected rather than measured on real optics.</li>
+      <li><b>Fixed stride.</b> The stride h is fixed and known. The sweep covers h from 1 to 4, and hence M from 15 down to 3, but never a stride that varies within an episode.</li>
+      <li><b>Two policy families.</b> We test Diffusion Policy and ACT. The mechanism needs a timestep to be covered by several predictions that are then combined; it does not apply where a query emits a single action.</li>
+      <li><b>Clean data.</b> The effect on clean data is configuration-dependent, from -0.04 to +0.07.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block" id="bibtex">
+  <div class="container narrow">
+    <div class="kicker">Citation</div>
+    <h2>BibTeX</h2>
+    <div class="bib">
+      <button class="btn copy" id="copyBib">Copy</button>
+<pre id="bibText">@article{jiang2026median,
+  title   = {Median Temporal Ensembling: Training-Free Robust
+             Aggregation for Action-Chunked Visuomotor Policies},
+  author  = {Jiang, Yuhang},
+  journal = {arXiv preprint arXiv:2609.27167},
+  year    = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    &copy; 2026 Yuhang Jiang &middot; <a href="mailto:jyhtjtj@gmail.com">jyhtjtj@gmail.com</a>
+  </div>
+</footer>
+
+<div class="tip" id="tip"></div>
+
+
+<script src="static/data/data.js"></script>
+<script src="static/js/app.js"></script>
+</body>
+</html>
