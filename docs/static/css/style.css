@@ -1,17 +1,19 @@
 /* Median Temporal Ensembling — project page
-   Palette: Sakura Sky (sky blue + rose pink).
-   --median / --mean are the two data colours (ours / the deployed weighted mean). */
+   Palette: lilac and orchid pink with champagne gold on pearl white, in the spirit of Cyrene (Honkai: Star Rail).
+   --median / --mean are the two data colours (ours / the deployed weighted mean). --gold is for decoration only:
+   it is too light for text. */
 
-:root {                           /* Sakura Sky palette */
-  --bg: #ffffff;  --bg-soft: #f5f8ff;  --surface: #ffffff;
-  --ink: #15203a; --ink-2: #4b5672;   --ink-3: #8a93aa;  --line: #e4e9f5;
-  --primary: #3a6df0; --primary-ink: #ffffff; --primary-soft: #e8efff;
-  --accent: #ee5f95;  --accent-soft: #fde9f1;
-  --median: #3a6df0;  --median-soft: #dfe8ff;
-  --mean: #e5527f;    --mean-soft: #fde3ec;
+:root {
+  --bg: #fffdfe;  --bg-soft: #fbf6fc;  --surface: #ffffff;
+  --ink: #2a1f3d; --ink-2: #5b5070;   --ink-3: #8e84a0;  --line: #eee4f3;
+  --primary: #6a4fd8; --primary-ink: #ffffff; --primary-soft: #eee8fd;
+  --accent: #d65aa8;  --accent-soft: #fceaf5;
+  --median: #6a4fd8;  --median-soft: #e9e2fc;
+  --mean: #e0507e;    --mean-soft: #fde4ec;
+  --gold: #c9973c;    --gold-soft: #f8efda;
   --good: #1f9d6b;    --warn: #d9822b;
-  --hero-a: #dce8ff;  --hero-b: #ffe1ee;
-  --shadow: 0 1px 2px rgba(21,32,58,.05), 0 8px 28px rgba(58,109,240,.08);
+  --hero-a: #ebe3ff;  --hero-b: #ffe1ef;
+  --shadow: 0 1px 2px rgba(42,31,61,.05), 0 8px 28px rgba(106,79,216,.09);
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 72px; }
@@ -214,3 +216,32 @@ h1, h2, .subtitle, .lede, .kicker, figcaption, .note, .stat span, .big p { text-
 p, li, .tldr, .guarantee div, .status span, .mini p { text-wrap: pretty; }
 /* Long centred paragraphs are hard to read on a phone and cannot be balanced past six lines. */
 @media (max-width: 600px) { .lede, .note, figcaption { text-align: left; } }
+
+/* ── Cyrene: ripples of the past (static/js/app.js, initReverie and zone) ── */
+/* The opening effect plays on a canvas behind the hero's text. While it is night there, the text turns light;
+   the colours are registered so that they fade instead of jumping (where @property is not supported they switch). */
+@property --h1a { syntax: "<color>"; inherits: true; initial-value: #2a1f3d; }
+@property --h1b { syntax: "<color>"; inherits: true; initial-value: #6a4fd8; }
+@property --h1c { syntax: "<color>"; inherits: true; initial-value: #d65aa8; }
+@property --h-sub { syntax: "<color>"; inherits: true; initial-value: #5b5070; }
+@property --h-meta { syntax: "<color>"; inherits: true; initial-value: #8e84a0; }
+@property --h-link { syntax: "<color>"; inherits: true; initial-value: #6a4fd8; }
+.hero { --h1a: var(--ink); --h1b: var(--primary); --h1c: var(--accent); --h-sub: var(--ink-2); --h-meta: var(--ink-3);
+  --h-link: var(--primary); transition: --h1a .6s, --h1b .6s, --h1c .6s, --h-sub .6s, --h-meta .6s, --h-link .6s; }
+.hero.night { --h1a: #ffffff; --h1b: #cdbdff; --h1c: #ff9fd2; --h-sub: #e6defc; --h-meta: #c9bfe6; --h-link: #c7b5ff;
+  transition-duration: .45s; }
+.hero h1 { background-image: linear-gradient(100deg, var(--h1a) 0%, var(--h1a) 38%, var(--h1b) 70%, var(--h1c) 100%); }
+.hero .subtitle { color: var(--h-sub); }
+.hero .author a { color: var(--h1a); }
+.hero .author a:hover { color: var(--h-link); }
+.hero .affil { color: var(--h-meta); }
+.hero .affil a { color: var(--h-link); }
+.hero > .reverie { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.hero > .container { position: relative; z-index: 1; }
+.hero h1 { cursor: default; }
+/* number-line widget: the drawing, and above it a layer for the petals of a scattering zone */
+.nl-stage { position: relative; }
+.nl-stage .nl-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.zone-in { animation: zone-in .6s cubic-bezier(.2, .8, .2, 1) both; transform-box: fill-box; transform-origin: center; }
+@keyframes zone-in { from { opacity: 0; transform: scale(.5, .8); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero > .reverie { display: none; } .zone-in { animation: none; } }
