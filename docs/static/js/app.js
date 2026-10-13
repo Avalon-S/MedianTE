@@ -410,14 +410,17 @@
   /* ── Cyrene: ripples of the past ─────────────────────────────────────────
      Two touches in the spirit of the palette (Cyrene, Honkai: Star Rail: Ice, Path of Remembrance), drawn after how
      her Ultimate and her Skill look in the game.
-     1. When the page opens, night falls over the hero and its text turns light. Meteors cross it and the largest lands
-        in the middle; ripples spread from there and a figure of eight of light opens. Twelve crystals come on around
-        it in four groups of three, one for each of the twelve demigods who took up the coreflames of the Titans of
-        Amphoreus (the Titans come in four triads: the Pillars, Fate, Creation, Calamity). The crystals flow into the
-        centre and become a crystal heart in a wreath of small hearts, the thirteenth; in the story she comes to hold
-        all twelve coreflames. The heart flares, day returns, petals scatter across the hero, and a flower opens where
-        each crystal stood. The game introduces her with a meteor, ripples in the river of life, thirteen colours and
-        the flowers of the past blooming tomorrow. Clicking the title plays it again.
+     1. When the page opens, night falls over the hero and its text turns light. A figure of eight of light draws
+        itself with lights running round it: the loop of the Eternal Recurrence, which ran some thirty million times
+        before the Trailblazer came. A meteor falls into its crossing and ripples spread from there; in her character
+        story the meteor stands for the one who makes this cycle different, and this time the ripples spread for it.
+        Twelve crystals come on around it in four groups of three, one for each of the twelve demigods who took up the
+        coreflames of the Titans of Amphoreus (the Titans come in four triads: the Pillars, Fate, Creation, Calamity).
+        They flow into the centre and become a crystal heart in a wreath of small hearts, the thirteenth: her memories
+        fill the empty core of Demiurge, and she comes to hold all twelve coreflames. The heart flares and breaks, and
+        day returns. Its pieces go back to where the crystals stood and open as crystal flowers, which in her story she
+        plants in people's hearts; the petals that fall are the memories she loses on her way back to the past.
+        Clicking the title plays it again.
      2. In the first widget the range of the clean predictions is the Zone her Skill opens, hung with sheer drapes and
         flowers as in the game. It holds while fewer than half of the predictions are corrupted and scatters into
         petals the moment half or more are, which is where the median's guarantee ends; it opens again when the count
@@ -425,15 +428,15 @@
      Nothing moves with prefers-reduced-motion. */
   function initReverie() {
     var hero = document.querySelector(".hero");
-    var cv = null, g = null, W = 0, H = 0, raf = 0, t0 = 0, dark = false, stars = [], streaks = [], petals = [], sprites = null;
+    var cv = null, g = null, W = 0, H = 0, raf = 0, t0 = 0, dark = false, stars = [], petals = [], sprites = null;
     var LILAC = cssVar("--median") || "#6a4fd8", PINK = cssVar("--accent") || "#d65aa8";
     var MIST = "#cdbdff", ROSE = "#ff9fd2", CYAN = "#8fe9ff", AMBER = "#ffcf7a", WHITE = "#ffffff";
-    // ms after play(): night falls over DUSK while meteors cross from STREAK0; the largest lands at HIT and ripples
-    // spread, each over RIP; the figure of eight opens from INF over INFD; the crystals come on from LIT, flow into the
-    // centre from FLOW (each over FLOWD) and become the heart from HEART; it flares at FLARE, day returns from DAWN over
-    // DAWND, and the petals and flowers are gone by DUR
-    var DUSK = 450, STREAK0 = 120, HIT = 1000, FALL = 650, RIP = 1600, INF = 1050, INFD = 800, LIT = 1500, FLOW = 2900,
-      FLOWD = 550, HEART = 3350, FLARE = 4100, DAWN = 4200, DAWND = 1000, DUR = 6800;
+    // ms after play(): night falls over DUSK while the figure of eight draws itself from INF over INFD; the meteor
+    // falls for FALL and lands at HIT, and ripples spread, each over RIP; the crystals come on from LIT (about when the
+    // first ripple reaches them), flow into the centre from FLOW (each over FLOWD) and become the heart from HEART; it
+    // breaks at FLARE, day returns from DAWN over DAWND, and the flowers and petals are gone by DUR
+    var DUSK = 450, INF = 150, INFD = 800, FALL = 650, HIT = 1250, RIP = 1600, LIT = 1700, FLOW = 2900, FLOWD = 550,
+      HEART = 3350, FLARE = 4100, DAWN = 4200, DAWND = 1000, DUR = 7000;
     // in units of the radius: the ring the crystals stand on. FLAT is how flat the water looks (a ring on it is FLAT
     // times as tall as it is wide); SLOPE is the angle of the meteors below the horizontal.
     var RING = 0.95, FLAT = 0.4, SLOPE = (34 * Math.PI) / 180;
@@ -520,9 +523,13 @@
       g.strokeStyle = rgba(col, al); g.beginPath(); g.ellipse(c[0], c[1], rx, rx * FLAT, 0, 0, TAU); g.stroke();
       g.strokeStyle = rgba(col, 0.35 * al); g.beginPath(); g.ellipse(c[0], c[1], 0.94 * rx, 0.94 * rx * FLAT, 0, 0, TAU); g.stroke();
     }
-    function infinity(c, R, f, a, now) {          // a figure of eight of light, open to fraction f from where it crosses
+    // the loop of the Eternal Recurrence: a figure of eight of light, open to fraction f from where it crosses, with
+    // lights running round it
+    function infinity(c, R, f, a, t) {
       if (f <= 0 || a <= 0) return;
-      var A = R * 1.6, B = R * 0.62, ph = (f * Math.PI) / 2, N = 56, k, s;
+      var A = R * 1.6, B = R * 0.62, ph = (f * Math.PI) / 2, N = 56, k, s, j;
+      function open(th) { th = ((th % TAU) + TAU) % TAU; return Math.min(th, TAU - th) <= ph || Math.abs(th - Math.PI) <= ph; }
+      function at(th) { return [c[0] + A * Math.sin(th), c[1] + B * Math.sin(th) * Math.cos(th)]; }
       // strands of the ribbon: colour, how far it wanders from the curve, width, opacity
       var strands = [[MIST, 0, 2.4, 0.75], [CYAN, 0.04, 1.2, 0.5], [ROSE, -0.04, 1.2, 0.5], [WHITE, 0.015, 1, 0.65]];
       g.lineCap = "round"; g.lineJoin = "round";
@@ -532,18 +539,23 @@
         for (var b = 0; b < 2; b++) {             // the two strokes that cross at the centre, about theta = 0 and theta = pi
           g.beginPath();
           for (k = 0; k <= N; k++) {
-            var th = b * Math.PI - ph + (2 * ph * k) / N;
-            var x = c[0] + A * Math.sin(th), y = c[1] + B * Math.sin(th) * Math.cos(th) + st[1] * R * Math.sin(3 * th + now / 400);
-            if (k) g.lineTo(x, y); else g.moveTo(x, y);
+            var th = b * Math.PI - ph + (2 * ph * k) / N, q = at(th);
+            q[1] += st[1] * R * Math.sin(3 * th + t / 400);
+            if (k) g.lineTo(q[0], q[1]); else g.moveTo(q[0], q[1]);
           }
           g.stroke();
         }
       }
-      for (k = 0; k < 30; k++) {                  // glints along it, where it is already open
-        var t2 = (k * 2.39996) % TAU;            // spread round the curve by the golden angle
-        if (Math.min(t2, TAU - t2) > ph && Math.abs(t2 - Math.PI) > ph) continue;
-        sparkle(c[0] + A * Math.sin(t2), c[1] + B * Math.sin(t2) * Math.cos(t2), R * 0.028 * (0.6 + 0.4 * Math.sin(now / 110 + k)),
-          k % 3 ? WHITE : CYAN, 0.85 * a);
+      for (k = 0; k < 30; k++) {                  // glints along it, spread round by the golden angle
+        var t2 = (k * 2.39996) % TAU, q2 = at(t2);
+        if (!open(t2)) continue;
+        sparkle(q2[0], q2[1], R * 0.028 * (0.6 + 0.4 * Math.sin(t / 110 + k)), k % 3 ? WHITE : CYAN, 0.85 * a);
+      }
+      for (k = 0; k < 8; k++) {                   // and the cycles going round, each with a short tail
+        for (j = 0; j < 4; j++) {
+          var t3 = (k / 8) * TAU + t / 420 - j * 0.07, q3 = at(t3);
+          if (open(t3)) glow(q3[0], q3[1], R * (0.05 - 0.009 * j), j ? MIST : WHITE, (0.9 - 0.2 * j) * a);
+        }
       }
     }
     function crystal(x, y, w, h, hue, a, gold, rot) { // an elongated hexagonal crystal, lit from inside in its own colour
@@ -618,21 +630,43 @@
         }
       }
     }
-    function starFlower(x, y, r, hue, a) {        // a small white flower with five pointed petals and a coloured heart
+    function shard(x, y, s, rot, hue) {           // a piece of the heart in flight
+      glow(x, y, s * 2.4, hue, 0.5);
+      g.save(); g.translate(x, y); g.rotate(rot);
+      g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.45, 0); g.lineTo(0, s * 0.8); g.lineTo(-s * 0.45, 0); g.closePath();
+      g.fillStyle = "rgba(246,242,255,0.95)"; g.fill(); g.strokeStyle = rgba(LILAC, 0.85); g.lineWidth = 1; g.stroke();
+      g.restore();
+    }
+    // a crystal flower: two rings of five pointed petals, each cut with a facet down its middle and fringed with colour
+    // on its edges, and a small gem at its heart in the demigod's own colour (six petals would read as a snowflake).
+    // It is drawn plainly, not as light, so that it shows by day as well.
+    function crystalBloom(x, y, r, hue, a) {
       if (r <= 0.5 || a <= 0) return;
       g.save(); g.translate(x, y); g.globalAlpha = a;
-      glow(0, 0, r * 1.6, ROSE, 0.35);
-      for (var k = 0; k < 5; k++) {
-        g.save(); g.rotate((k * TAU) / 5);
-        g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(r * 0.45, -r * 0.3, r * 0.3, -r * 0.85, 0, -r);
-        g.bezierCurveTo(-r * 0.3, -r * 0.85, -r * 0.45, -r * 0.3, 0, 0); g.closePath();
-        var gr = g.createLinearGradient(0, 0, 0, -r);
-        gr.addColorStop(0, hue); gr.addColorStop(0.45, "#ffffff"); gr.addColorStop(1, "#ffffff");
-        g.fillStyle = gr; g.fill();
-        g.strokeStyle = rgba(PINK, 0.55); g.lineWidth = 0.8; g.stroke();
-        g.restore();
+      glow(0, 0, r * 1.7, hue, 0.38);
+      for (var ring = 0; ring < 2; ring++) {
+        var L = r * (ring ? 0.64 : 1), w = L * (ring ? 0.6 : 0.66);
+        for (var k = 0; k < 5; k++) {
+          g.save(); g.rotate(((k + ring * 0.5) * TAU) / 5);
+          for (var side = -1; side <= 1; side += 2) {   // each half of the petal, so that its two edges take two colours
+            g.beginPath(); g.moveTo(0, 0);
+            g.bezierCurveTo(side * w * 0.6, -L * 0.24, side * w * 0.55, -L * 0.7, 0, -L); g.lineTo(0, 0); g.closePath();
+            var gr = g.createLinearGradient(0, 0, 0, -L);
+            gr.addColorStop(0, ring ? "rgba(255,159,210,0.9)" : "rgba(185,163,255,0.9)"); gr.addColorStop(1, "rgba(255,255,255,0.95)");
+            g.fillStyle = gr; g.fill();
+            g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(side * w * 0.6, -L * 0.24, side * w * 0.55, -L * 0.7, 0, -L);
+            g.strokeStyle = side > 0 ? rgba(CYAN, 0.8) : rgba(ROSE, 0.8); g.lineWidth = 1.1; g.stroke();
+          }
+          g.beginPath(); g.moveTo(0, -L * 0.14); g.lineTo(w * 0.2, -L * 0.55); g.lineTo(0, -L * 0.88); g.lineTo(-w * 0.2, -L * 0.55); g.closePath();
+          g.strokeStyle = "rgba(255,255,255,0.85)"; g.lineWidth = 0.8; g.stroke();   // the facet
+          g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(w * 0.6, -L * 0.24, w * 0.55, -L * 0.7, 0, -L);
+          g.bezierCurveTo(-w * 0.55, -L * 0.7, -w * 0.6, -L * 0.24, 0, 0);
+          g.strokeStyle = rgba(LILAC, 0.55); g.lineWidth = 0.7; g.stroke();          // a fine outline, so it shows on white
+          g.restore();
+        }
       }
-      g.fillStyle = rgba(AMBER, 0.95); g.beginPath(); g.arc(0, 0, r * 0.16, 0, TAU); g.fill();
+      g.beginPath(); g.arc(0, 0, r * 0.17, 0, TAU); g.fillStyle = hue; g.fill();
+      g.strokeStyle = "rgba(255,255,255,0.95)"; g.lineWidth = 1; g.stroke();
       g.restore();
     }
     function makeSprites() {                      // petals, drawn once: rounded, a little notched, narrowing to the base
@@ -649,14 +683,10 @@
     }
     function spawn() {
       var R = Math.random, k, C = [WHITE, WHITE, WHITE, MIST, CYAN, ROSE];
-      stars.length = 0; streaks.length = 0; petals.length = 0;
+      stars.length = 0; petals.length = 0;
       for (k = 0; k < 170; k++) {
         stars.push({ x: R(), y: R(), r: 0.8 + R() * 1.2, a: 0.35 + R() * 0.55, w: 180 + R() * 420, ph: R() * TAU,
           c: C[Math.floor(R() * C.length)], big: k < 12 });
-      }
-      for (k = 0; k < 16; k++) {                  // starting on the top edge or beyond the right edge, in px from there
-        streaks.push({ x: (0.15 + 1.2 * R()) * W, y: -30 - R() * 60, t: STREAK0 + R() * 1300, v: 1.1 + R() * 0.9,
-          len: 90 + R() * 160, w: 0.8 + R() * 1.6, a: 0.45 + R() * 0.5 });
       }
       for (k = 0; k < 70; k++) {                  // the petals the heart breaks into: speeds in px/ms for a radius of 230
         var an = R() * TAU, v = 0.25 + R() * 0.75;
@@ -677,16 +707,12 @@
       night *= 1 - d;                             // what shines fades as the sky turns pale
       g.globalCompositeOperation = "lighter";      // everything that shines adds its light to the night
 
-      for (k = 0; k < streaks.length; k++) {      // meteors cross the sky from the upper right
-        var s = streaks[k], tt = t - s.t, ux = -Math.cos(SLOPE), uy = Math.sin(SLOPE);
-        if (tt < 0) continue;
-        var hx = s.x + ux * s.v * tt, hy = s.y + uy * s.v * tt, tl = Math.min(s.len, s.v * tt);
-        if (hy - uy * tl > H + 10 || hx - ux * tl < -10) continue;
-        var al = s.a * Math.min(1, tt / 120) * night;
-        beam(hx, hy, hx - ux * tl, hy - uy * tl, s.w, WHITE, MIST, al);
-      }
+      // the loop (her Ultimate: "of the vow, infinity") is there from the start; it brightens as the meteor strikes it,
+      // and gives way as the crystals move in
+      var hit = t >= HIT && t < HIT + 500 ? 1 - (t - HIT) / 500 : 0;
+      infinity(c, R, easeOut(clamp((t - INF) / INFD, 0, 1)), night * clamp(1 - (t - FLOW) / 700, 0, 1) * (1 + 0.8 * hit), t);
       var p = (t - (HIT - FALL)) / FALL;
-      if (p >= 0 && p < 1) {                      // and the largest falls into the middle
+      if (p >= 0 && p < 1) {                      // the meteor falls into its crossing
         var e = Math.pow(p, 1.6), sx = c[0] + Math.cos(SLOPE) * 2.3 * R, sy = c[1] - Math.sin(SLOPE) * 2.3 * R;
         var mx = sx + (c[0] - sx) * e, my = sy + (c[1] - sy) * e, mux = -Math.cos(SLOPE), muy = Math.sin(SLOPE);
         var ml = R * (0.4 + 0.9 * Math.min(1, 1.5 * p)), nx = -muy * 2.2, ny = mux * 2.2;
@@ -695,13 +721,11 @@
         beam(mx, my, mx - mux * ml, my - muy * ml, Math.max(3, R * 0.02), WHITE, MIST, 0.95);
         glow(mx, my, R * 0.12, MIST, 0.9); sparkle(mx, my, R * 0.08, WHITE, 1);
       }
-      if (t >= HIT) {                             // the river of life ripples where it lands
+      if (t >= HIT) {                             // and the river of life ripples where it lands
         var th = t - HIT;
         if (th < 380) { glow(c[0], c[1], R * (0.15 + (0.5 * th) / 380), MIST, 0.9 * (1 - th / 380)); flare(c[0], c[1], R * (1 - th / 380), 1 - th / 380); }
         for (k = 0; k < 3; k++) ripple(c, R, (th - 220 * k) / RIP, [MIST, ROSE, CYAN][k], night);
       }
-      // the figure of eight (her Ultimate: "of the vow, infinity") opens, and gives way as the crystals move in
-      infinity(c, R, easeOut(clamp((t - INF) / INFD, 0, 1)), night * clamp(1 - (t - FLOW) / 700, 0, 1), now);
 
       // twelve crystals come on around it, one for each demigod, each with a gold edge as it lights (as a teammate is
       // picked out in the game); then each flows into the centre along a curve that turns as it closes in
@@ -722,13 +746,13 @@
         }
         crystal(cx, cy, R * 0.13 * sc, R * 0.3 * sc, L.c, night, clamp(1 - lt / 520, 0, 1), rot);
       }
-      // the thirteenth: they become a crystal heart in a wreath of small hearts. It flares, and day returns.
-      var hb = clamp((t - HEART) / 600, 0, 1), fade = t < DAWN ? 1 : clamp(1 - (t - DAWN) / 650, 0, 1);
-      if (t >= FLOW) glow(c[0], c[1], R * (0.12 + (0.12 * arrived) / 12), ROSE, ((0.55 * arrived) / 12) * fade);
+      // the thirteenth: they become a crystal heart in a wreath of small hearts. It flares and breaks, and day returns.
+      var hb = clamp((t - HEART) / 600, 0, 1), whole = clamp(1 - (t - FLARE) / 160, 0, 1);
+      if (t >= FLOW) glow(c[0], c[1], R * (0.12 + (0.12 * arrived) / 12), ROSE, ((0.55 * arrived) / 12) * whole);
       if (hb > 0) {
         var hs = R * 0.42 * Math.max(0, easeOutBack(hb)) * (1 + 0.035 * Math.sin(now / 150));
-        crystalHeart(c[0], c[1] + R * 0.02, hs, fade);
-        wreath(c[0], c[1], R * 0.5, easeOut(clamp((t - HEART - 150) / 750, 0, 1)), fade);
+        crystalHeart(c[0], c[1] + R * 0.02, hs, whole);
+        wreath(c[0], c[1], R * 0.5, easeOut(clamp((t - HEART - 150) / 750, 0, 1)), clamp(1 - (t - FLARE) / 450, 0, 1));
       }
       u = (t - FLARE) / 650;
       if (u > -0.25 && u < 1) {
@@ -744,14 +768,20 @@
       }
       g.globalCompositeOperation = "source-over";
 
-      // a flower opens where each crystal stood, and the heart's petals drift down
+      // its pieces go back to where the twelve crystals stood and open there as crystal flowers, and petals fall:
+      // the memories she loses on her way back to the past
       var gone = clamp(1 - (t - (DUR - 900)) / 900, 0, 1);
       for (k = 0; k < 12; k++) {
-        var bt = (t - (DAWN + 150 + 30 * k)) / 550;
-        if (bt <= 0) continue;
-        var Lk = lights[k], dk = 0.85 + 0.15 * Math.sin(Lk.th);
-        starFlower(c[0] + Math.cos(Lk.th) * RING * R, c[1] + Math.sin(Lk.th) * RING * R * FLAT,
-          R * 0.085 * dk * Math.max(0, easeOutBack(clamp(bt, 0, 1))), Lk.c, gone);
+        var Lk = lights[k], dk = 0.85 + 0.15 * Math.sin(Lk.th), f1 = FLARE + 40 + 25 * k;
+        u = (t - f1) / 550;
+        if (u <= 0) continue;
+        if (u < 1) {                              // on its way out, along a curve that turns as it goes
+          var fo = easeOut(u), an3 = Lk.th - 0.8 * (1 - fo), rr3 = RING * R * fo;
+          shard(c[0] + Math.cos(an3) * rr3, c[1] + Math.sin(an3) * rr3 * FLAT, R * 0.068 * dk, 9 * u, Lk.c);
+          continue;
+        }
+        crystalBloom(c[0] + Math.cos(Lk.th) * RING * R, c[1] + Math.sin(Lk.th) * RING * R * FLAT,
+          R * 0.11 * dk * Math.max(0, easeOutBack(clamp((t - f1 - 550) / 450, 0, 1))), Lk.c, gone);
       }
       var ps = R / 230, pz = Math.max(0.7, ps);
       for (k = 0; k < petals.length; k++) {
