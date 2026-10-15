@@ -2,22 +2,61 @@
 <html lang="en" data-theme="cyrene">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Median Temporal Ensembling</title>
   <meta name="description" content="Median temporal ensembling: a one-line, training-free replacement for the weighted mean that action-chunked visuomotor policies use to combine overlapping predictions." />
   <meta property="og:title" content="Median Temporal Ensembling" />
   <meta property="og:description" content="Training-free robust aggregation for action-chunked visuomotor policies." />
   <meta property="og:image" content="static/media/poster.jpg" />
+  <meta name="theme-color" content="#fcf9fe" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 28 4.6 15.4C1.4 11.8 3.6 5 9.4 5c3 0 5 1.8 6.6 4.2C17.6 6.8 19.6 5 22.6 5c5.8 0 8 6.8 4.8 10.4Z' fill='%236a4fd8'/%3E%3Cpath d='M16 28 9 12l7-3 7 3Z' fill='%23d65aa8' opacity='.75'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Marcellus+SC&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="static/css/style.css" />
 </head>
 <body>
 
-<nav class="nav">
+<!-- ornaments drawn once and reused: a cut crystal (the demigods' crystals), a crystal heart (the brand), a heart leaf
+     (her halo), a petal -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-iris" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb3da" /><stop offset=".5" stop-color="#b9a3ff" /><stop offset="1" stop-color="#9fe6f2" />
+    </linearGradient>
+    <linearGradient id="g-gem" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" /><stop offset=".45" stop-color="#d9ccff" /><stop offset="1" stop-color="#8f74ea" />
+    </linearGradient>
+    <linearGradient id="g-heart" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f74ea" /><stop offset=".6" stop-color="#6a4fd8" /><stop offset="1" stop-color="#d65aa8" />
+    </linearGradient>
+    <linearGradient id="g-petal" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#f06aae" /><stop offset="1" stop-color="#ffe3f1" />
+    </linearGradient>
+  </defs>
+  <symbol id="gem" viewBox="0 0 20 40">
+    <polygon points="10,1 19,10 19,30 10,39 1,30 1,10" fill="url(#g-gem)" stroke="#6a4fd8" stroke-width="1.1" />
+    <polygon points="10,9 15,14 15,26 10,31 5,26 5,14" style="fill:var(--hue, #b9a3ff)" fill-opacity=".6" />
+    <polyline points="10,1 10,39" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width=".8" />
+    <polyline points="1,10 10,20 19,10" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width=".8" />
+  </symbol>
+  <symbol id="heartmark" viewBox="0 0 32 32">
+    <path d="M16 28 4.6 15.4C1.4 11.8 3.6 5 9.4 5c3 0 5 1.8 6.6 4.2C17.6 6.8 19.6 5 22.6 5c5.8 0 8 6.8 4.8 10.4Z" fill="url(#g-heart)" />
+    <path d="M16 28 9.6 11.6 16 9.2l6.4 2.4Z M4.6 15.4 9.6 11.6 M27.4 15.4 22.4 11.6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1" />
+  </symbol>
+  <symbol id="leaf" viewBox="0 0 32 32">
+    <path d="M16 28 4.6 15.4C1.4 11.8 3.6 5 9.4 5c3 0 5 1.8 6.6 4.2C17.6 6.8 19.6 5 22.6 5c5.8 0 8 6.8 4.8 10.4Z" />
+  </symbol>
+  <symbol id="petal" viewBox="0 0 48 64">
+    <path d="M24 60C2 46 2 14 16 5 20 8 24 9 24 9s4-1 8-4c14 9 14 41-8 55Z" fill="url(#g-petal)" stroke="#fff" stroke-opacity=".7" />
+  </symbol>
+</svg>
+
+<a class="skip" href="#problem">Skip to content</a>
+
+<nav class="nav" aria-label="Sections">
   <div class="container">
-    <a class="brand" href="#top">Median <span>TE</span></a>
+    <a class="brand" href="#top"><svg class="brand-mark" aria-hidden="true"><use href="#heartmark" /></svg><span class="brand-word">Median <em>TE</em></span></a>
     <ul>
       <li><a href="#problem">Problem</a></li>
       <li><a href="#method">Method</a></li>
@@ -30,33 +69,81 @@
   </div>
 </nav>
 
+<!-- ─────────────────────────── hero ─────────────────────────── -->
 <header class="hero" id="top">
+  <!-- the Zone of her Skill: sheer drapes knotted with flowers, a pillar of light below each knot -->
+  <svg class="drapes" width="100%" height="64" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="g-pillar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#b9a3ff" stop-opacity=".35" /><stop offset="1" stop-color="#b9a3ff" stop-opacity="0" />
+      </linearGradient>
+      <pattern id="drape" width="150" height="64" patternUnits="userSpaceOnUse">
+        <rect x="70" y="10" width="10" height="54" fill="url(#g-pillar)" />
+        <path d="M0 14C24 14 50 11 75 5C100 11 126 14 150 14L150 40C122 40 96 30 75 10C54 30 28 40 0 40Z" fill="#ece4ff" fill-opacity=".9" stroke="#6a4fd8" stroke-opacity=".22" />
+        <path d="M0 6C26 6 52 5 75 2C98 5 124 6 150 6L150 32C124 32 96 23 75 4C54 23 26 32 0 32Z" fill="#ffffff" fill-opacity=".95" stroke="#6a4fd8" stroke-opacity=".35" />
+        <g fill="#e889bd"><circle cx="75" cy="1.8" r="3.4" /><circle cx="78.4" cy="4.3" r="3.4" /><circle cx="77.1" cy="8.3" r="3.4" /><circle cx="72.9" cy="8.3" r="3.4" /><circle cx="71.6" cy="4.3" r="3.4" /></g>
+        <circle cx="75" cy="5.2" r="2" fill="#fff6e0" />
+        <path d="M75 11v9" stroke="#6a4fd8" stroke-opacity=".35" />
+        <polygon points="75,19 78,24 75,30 72,24" fill="url(#g-gem)" stroke="#6a4fd8" stroke-opacity=".6" stroke-width=".8" />
+      </pattern>
+    </defs>
+    <rect width="100%" height="64" fill="url(#drape)" />
+  </svg>
+  <!-- the demigods' crystals at either side of the title, and a few petals -->
+  <div class="deco" aria-hidden="true">
+    <svg class="heir h1" style="--hue:#ff9fd2"><use href="#gem" /></svg>
+    <svg class="heir h2" style="--hue:#ffd48a"><use href="#gem" /></svg>
+    <svg class="heir h3" style="--hue:#8fe3f0"><use href="#gem" /></svg>
+    <svg class="heir h4" style="--hue:#b9a3ff"><use href="#gem" /></svg>
+    <svg class="heir h5" style="--hue:#9ff0c0"><use href="#gem" /></svg>
+    <svg class="heir h6" style="--hue:#ffb0c8"><use href="#gem" /></svg>
+    <svg class="petal p1"><use href="#petal" /></svg>
+    <svg class="petal p2"><use href="#petal" /></svg>
+    <svg class="petal p3"><use href="#petal" /></svg>
+    <svg class="petal p4"><use href="#petal" /></svg>
+    <svg class="petal p5"><use href="#petal" /></svg>
+    <!-- the figure of eight of her Ultimate, faint behind the title -->
+    <svg class="infinity" viewBox="-200 -60 400 120" preserveAspectRatio="none">
+      <path d="M0 0C40 -55 160 -55 160 0S40 55 0 0S-160 -55 -160 0 -40 55 0 0Z" fill="none" stroke="url(#g-iris)" stroke-width="1.6" vector-effect="non-scaling-stroke" />
+      <path d="M0 0C44 -48 152 -50 152 0S44 50 0 0S-152 -50 -152 0 -44 48 0 0Z" fill="none" stroke="url(#g-iris)" stroke-width=".8" stroke-opacity=".7" vector-effect="non-scaling-stroke" />
+    </svg>
+  </div>
+
   <div class="container">
-    <span class="eyebrow">Robot learning &middot; Robust aggregation &middot; Training-free</span>
-    <h1>Median Temporal Ensembling</h1>
-    <p class="subtitle">Training-Free Robust Aggregation for Action-Chunked Visuomotor Policies</p>
-    <p class="author"><a href="https://avalon-s.github.io/" target="_blank" rel="noopener">Yuhang Jiang</a></p>
-    <p class="affil">University of Trento &middot; <a href="mailto:jyhtjtj@gmail.com">jyhtjtj@gmail.com</a></p>
-    <div class="btns">
-      <a class="btn btn-primary" id="arxivBtn" href="https://arxiv.org/abs/2609.27167" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 7h16v2H4zm0 7h10v2H4z"/></svg>arXiv</a>
-      <a class="btn" href="#video">
-        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Video</a>
-      <a class="btn" href="#bibtex">
-        <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.6H8zm0 3.5h8v1.6H8z"/></svg>BibTeX</a>
-      <span class="btn soon">
-        <svg viewBox="0 0 24 24"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0023.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Code <span class="tag">soon</span></span>
+    <div class="hero-head">
+      <span class="eyebrow"><i class="gem-dot"></i>Robot learning &middot; Robust aggregation &middot; Training-free<i class="gem-dot"></i></span>
+      <h1 class="title" title="Play the opening again">Median Temporal <span class="iris">Ensembling</span></h1>
+      <p class="subtitle">Training-Free Robust Aggregation for Action-Chunked Visuomotor Policies</p>
+      <p class="author"><a href="https://avalon-s.github.io/" target="_blank" rel="noopener">Yuhang Jiang</a></p>
+      <p class="affil">University of Trento &middot; <a href="mailto:jyhtjtj@gmail.com">jyhtjtj@gmail.com</a></p>
+      <div class="btns">
+        <a class="btn btn-primary" id="arxivBtn" href="https://arxiv.org/abs/2609.27167" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v2H4zm0 7h16v2H4zm0 7h10v2H4z"/></svg>arXiv</a>
+        <a class="btn" href="#video">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>Video</a>
+        <a class="btn" href="#bibtex">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6V2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.6H8zm0 3.5h8v1.6H8z"/></svg>BibTeX</a>
+        <span class="btn soon">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 016 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.5 11.5 0 0023.5 12C23.5 5.7 18.3.5 12 .5z"/></svg>Code <span class="tag">soon</span></span>
+      </div>
     </div>
+
+    <figure class="hero-stage">
+      <div class="card ripples" id="w-hero"></div>
+      <figcaption>Each row is one query. It predicts the next seven actions from the step at which it was made, so the
+        action executed now was already predicted by the last seven queries. Corrupt the newest ones: the weighted mean
+        follows them, and the median stays inside the range of the clean predictions until half or more are corrupted.</figcaption>
+    </figure>
   </div>
 </header>
 
 <div class="container">
-  <div class="stats">
-    <div class="stat"><b>1 line</b><span>replaces the weighted mean; nothing is retrained</span></div>
-    <div class="stat"><b>25 / 25</b><span>settings where the median is never worse than the mean</span></div>
-    <div class="stat"><b>15</b><span>of them significantly better after Holm correction</span></div>
-    <div class="stat"><b>0</b><span>times it left the clean range, in 53,704 timesteps</span></div>
-    <div class="stat"><b>&lt;0.3%</b><span>of the cost of one decision</span></div>
+  <div class="stats frame">
+    <div class="stat"><svg class="gem-ico" style="--hue:#b9a3ff" aria-hidden="true"><use href="#gem" /></svg><b class="v">1 line</b><span class="l">replaces the weighted mean; nothing is retrained</span></div>
+    <div class="stat"><svg class="gem-ico" style="--hue:#ff9fd2" aria-hidden="true"><use href="#gem" /></svg><b class="v">25 / 25</b><span class="l">settings where the median is never worse than the mean</span></div>
+    <div class="stat"><svg class="gem-ico" style="--hue:#b9a3ff" aria-hidden="true"><use href="#gem" /></svg><b class="v">15</b><span class="l">of them significantly better after Holm correction</span></div>
+    <div class="stat"><svg class="gem-ico" style="--hue:#ff9fd2" aria-hidden="true"><use href="#gem" /></svg><b class="v">0</b><span class="l">times it left the clean range, in 53,704 timesteps</span></div>
+    <div class="stat"><svg class="gem-ico" style="--hue:#b9a3ff" aria-hidden="true"><use href="#gem" /></svg><b class="v">&lt;0.3%</b><span class="l">of the cost of one decision</span></div>
   </div>
 </div>
 
@@ -96,7 +183,7 @@
 <section class="block alt" id="problem">
   <div class="container">
     <div class="kicker">The problem</div>
-    <h2>One corrupted prediction can drag the mean anywhere</h2>
+    <h2>One corrupted prediction can drag <em>the mean</em> anywhere</h2>
     <p class="lede">A policy like ACT or Diffusion Policy predicts a chunk of future actions, executes
       the first few, then predicts again. By the time an action runs, several earlier chunks have
       already predicted it. Below are seven such predictions for one action dimension. Corrupt some
@@ -108,7 +195,7 @@
 <section class="block" id="method">
   <div class="container">
     <div class="kicker">The method</div>
-    <h2>Swap the mean for a median. That is the whole change.</h2>
+    <h2>Swap the mean for <em>a median</em>. That is the whole change.</h2>
     <p class="lede"><code>A</code> holds the overlapping predictions for the current timestep, one row
       per query. The weighted mean is what ACT deploys; the median is ours.</p>
     <div class="code-grid">
@@ -141,8 +228,8 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 <section class="block alt" id="video">
   <div class="container">
     <div class="kicker">Video</div>
-    <h2>Watch it run</h2>
-    <div class="video-wrap">
+    <h2>Watch it <em>run</em></h2>
+    <div class="video-wrap frame">
       <video controls preload="metadata" poster="static/media/poster.jpg" playsinline>
         <source src="static/media/overview.mp4" type="video/mp4" />
       </video>
@@ -154,14 +241,14 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 <section class="block" id="results">
   <div class="container">
     <div class="kicker">Results</div>
-    <h2>Never worse than the mean, across 25 settings</h2>
+    <h2><em>Never worse</em> than the mean, across 25 settings</h2>
     <p class="lede">Diffusion Policy on robomimic and PushT, two backbones and four execution strides,
       under sparse burst corruption. Each row is one (configuration, corruption level) pair; the
       line runs from the weighted mean to the median. Hover a row for its p-value.</p>
     <div class="card chart-card">
       <div class="legend">
-        <span><i style="background:var(--mean)"></i>weighted mean (deployed)</span>
-        <span><i style="background:var(--median)"></i>median (ours)</span>
+        <span><i class="sw dot" style="background:var(--mean)"></i>weighted mean (deployed)</span>
+        <span><i class="sw dia" style="background:var(--median)"></i>median (ours)</span>
         <span>&#9733; significant after Holm correction over all 25</span>
       </div>
       <div class="chart" id="c-main"></div>
@@ -185,7 +272,7 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 <section class="block alt" id="guarantee">
   <div class="container">
     <div class="kicker">Why the guarantee type matters</div>
-    <h2>A stronger attacker wears down a metric defence. The median holds.</h2>
+    <h2>A stronger attacker wears down a metric defence. <em>The median holds.</em></h2>
     <p class="lede">Encoder adversarial fine-tuning makes the encoder less sensitive to a perturbation
       of a given size. It recovers 44% of the loss under the published patch attack and 7.3% once the
       attacker's step size is raised. The median's recovered fraction stays flat as optimisation
@@ -205,12 +292,12 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 <section class="block" id="mechanism">
   <div class="container narrow">
     <div class="kicker">Mechanism</div>
-    <h2>Checked at every timestep</h2>
+    <h2>Checked at <em>every timestep</em></h2>
     <p class="lede">We split the predictions at every timestep by whether their query was corrupted,
       and counted how often each aggregator's output left the range of the clean ones. Over the
       53,704 timesteps at which fewer than half were corrupted:</p>
     <div class="big">
-      <div class="card median"><div class="n">0</div><p>times the <b>median</b> left the clean range</p></div>
+      <div class="card median"><div class="wreath" aria-hidden="true"></div><div class="n">0</div><p>times the <b>median</b> left the clean range</p></div>
       <div class="card mean"><div class="n">81&ndash;93%</div><p>of those timesteps, the <b>weighted mean</b> did</p></div>
     </div>
   </div>
@@ -219,7 +306,7 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 <section class="block alt" id="boundary">
   <div class="container">
     <div class="kicker">Boundary</div>
-    <h2>Where the median cannot help</h2>
+    <h2>Where the median <em>cannot help</em></h2>
     <p class="lede">If every covering prediction is shifted by the same amount, the predictions still
       agree with each other. Nothing is outvoted. This corruption is invisible to every statistic that
       compares predictions with one another, and no equivariant aggregator, the median included, can
@@ -231,21 +318,21 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 <section class="block" id="qualitative">
   <div class="container">
     <div class="kicker">One episode</div>
-    <h2>Same seed, same attack, different aggregator</h2>
-    <figure>
+    <h2>Same seed, same attack, <em>different aggregator</em></h2>
+    <figure class="frame film">
       <img src="static/img/qualitative.png" alt="Filmstrip of one can episode: the weighted mean fails and the median succeeds." loading="lazy" />
-      <figcaption>One episode of can at h=2, q=3, run twice from the same seed and under the same attack,
-        changing only the aggregator: the weighted mean (top) fails and the median (bottom) succeeds.
-        A star marks a corrupted query window. Frames are a third-person render for visualisation
-        only; the policy sees two 84&times;84 views.</figcaption>
     </figure>
+    <p class="figcap">One episode of can at h=2, q=3, run twice from the same seed and under the same attack,
+      changing only the aggregator: the weighted mean (top) fails and the median (bottom) succeeds.
+      A star marks a corrupted query window. Frames are a third-person render for visualisation
+      only; the policy sees two 84&times;84 views.</p>
   </div>
 </section>
 
 <section class="block alt" id="limits">
   <div class="container narrow">
     <div class="kicker">Limitations</div>
-    <h2>What this work does not show</h2>
+    <h2>What this work <em>does not show</em></h2>
     <ul class="limits">
       <li><b>Simulation only.</b> All results are in simulation (robomimic lift, can, square, and PushT); none is on hardware.</li>
       <li><b>Rendered, not printed.</b> The physical patch is rendered into the observation, and the sensor faults are injected rather than measured on real optics.</li>
@@ -260,7 +347,7 @@ action = (w[:, None] * A).sum(axis=0)</pre>
   <div class="container narrow">
     <div class="kicker">Citation</div>
     <h2>BibTeX</h2>
-    <div class="bib">
+    <div class="bib frame">
       <button class="btn copy" id="copyBib">Copy</button>
 <pre id="bibText">@article{jiang2026median,
   title   = {Median Temporal Ensembling: Training-Free Robust
@@ -275,7 +362,8 @@ action = (w[:, None] * A).sum(axis=0)</pre>
 
 <footer>
   <div class="container">
-    &copy; 2026 Yuhang Jiang &middot; <a href="mailto:jyhtjtj@gmail.com">jyhtjtj@gmail.com</a>
+    <svg class="foot-mark" aria-hidden="true"><use href="#heartmark" /></svg>
+    <div>&copy; 2026 Yuhang Jiang &middot; <a href="mailto:jyhtjtj@gmail.com">jyhtjtj@gmail.com</a></div>
   </div>
 </footer>
 

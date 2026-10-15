@@ -17,6 +17,33 @@
     return t;
   }
   function fmt(v, d) { return (v >= 0 ? "" : "−") + Math.abs(v).toFixed(d == null ? 2 : d); }
+  // a cut crystal of width w and height h centred on (x, y): an elongated hexagon, pointed at top and bottom
+  function gemPts(x, y, w, h) {
+    return [[x, y - h / 2], [x + w / 2, y - h / 4], [x + w / 2, y + h / 4], [x, y + h / 2], [x - w / 2, y + h / 4], [x - w / 2, y - h / 4]]
+      .map(function (q) { return q[0].toFixed(1) + "," + q[1].toFixed(1); }).join(" ");
+  }
+  // one prediction: a lilac crystal when clean, a rose one with a crack when corrupted
+  function crystalMark(parent, x, y, bad, w, h) {
+    w = w || 17; h = h || 30;
+    var g = el("g", {}, parent);
+    el("polygon", { points: gemPts(x, y, w, h), "stroke-width": 1.3,
+      style: bad ? "fill:var(--mean);stroke:#b0325c" : "fill:url(#g-gem);stroke:var(--median)" }, g);
+    el("path", { d: "M" + x + " " + (y - h / 2 + 2) + "V" + (y + h / 2 - 2), "stroke-width": 0.9, style: "stroke:#fff;stroke-opacity:.8;fill:none" }, g);
+    if (bad) el("polyline", { points: [x - 4, y - h * 0.3, x + 2, y - h * 0.05, x - 2, y + h * 0.08, x + 4, y + h * 0.32].join(" "),
+      "stroke-width": 1.4, style: "stroke:#fff;fill:none;stroke-linejoin:round" }, g);
+    return g;
+  }
+  // a heart about s wide centred on (x, y), its point turned to angle rot (0 = down)
+  function heartD(x, y, s, rot) {
+    var cs = Math.cos(rot), sn = Math.sin(rot), d = "";
+    for (var k = 0; k < 28; k++) {
+      var t = (k / 28) * Math.PI * 2, hx = 16 * Math.pow(Math.sin(t), 3),
+        hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) - 2.5;
+      hx *= s / 32; hy *= s / 32;
+      d += (k ? "L" : "M") + (x + hx * cs - hy * sn).toFixed(1) + " " + (y + hx * sn + hy * cs).toFixed(1);
+    }
+    return d + "Z";
+  }
 
   // ── motion and colour helpers (a canvas cannot read CSS variables, so colours are read once) ──
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -106,11 +133,11 @@
     function marker(v, above, color, label) {
       var off = v > HI, x = off ? X1 + 6 : X(v);
       var g = el("g", {}, svg);
-      if (above) {
-        el("path", { d: "M" + x + " " + (LY - 16) + " l-11 -20 h22 z", style: "fill:" + color }, g);
-        txt(g, x, LY - 46, label, { "text-anchor": "middle", "font-size": 17, "font-weight": 700, style: "fill:" + color });
+      if (above) {                                 // the median: a crystal pointing down at its value
+        el("path", { d: "M" + x + " " + (LY - 19) + " l-10 -13 l10 -13 l10 13 z", style: "fill:" + color + ";stroke:#fff;stroke-width:1.2" }, g);
+        txt(g, x, LY - 52, label, { "text-anchor": "middle", "font-size": 17, "font-weight": 700, style: "fill:" + color });
       } else {
-        el("path", { d: "M" + x + " " + (LY + 16) + " l-11 20 h22 z", style: "fill:" + color }, g);
+        el("path", { d: "M" + x + " " + (LY + 19) + " l-11 19 h22 z", style: "fill:" + color }, g);
         txt(g, x + (off ? -16 : 16), LY + 33, label, { "text-anchor": off ? "end" : "start", "font-size": 17, "font-weight": 700, style: "fill:" + color });
       }
       if (off) txt(g, x - 4, above ? LY - 64 : LY + 56, "→ " + v.toFixed(2),
@@ -228,17 +255,13 @@
       if (ref.length) txt(svg, bx, LY + 52, mode === "sparse" ? "range of the clean predictions" : "where the clean predictions were",
         { "font-size": 13, style: "fill:var(--median)" });
       el("line", { x1: X0 - 20, x2: X1 + 20, y1: LY, y2: LY, "stroke-width": 2, style: "stroke:var(--ink-3)" }, svg);
-      // ghosts + arrows for moved predictions
+      // where the moved predictions were, and each prediction as a crystal
       for (i = 0; i < M; i++) {
         if (!bad[i] || push === 0) continue;
-        el("circle", { cx: X(CLEAN[i]), cy: LY, r: 9, "stroke-width": 2,
+        el("polygon", { points: gemPts(X(CLEAN[i]), LY, 15, 27), "stroke-width": 1.4, "stroke-dasharray": "3 3",
           style: "fill:var(--surface);stroke:var(--ink-3)" }, svg);
       }
-      for (i = 0; i < M; i++) {
-        var cx = Math.min(X(v[i]), X1 + 4);
-        el("circle", { cx: cx, cy: LY, r: 10, "stroke-width": 2.5,
-          style: "stroke:var(--surface);fill:" + (bad[i] ? "var(--mean)" : "var(--ink-2)") }, svg);
-      }
+      for (i = 0; i < M; i++) crystalMark(svg, Math.min(X(v[i]), X1 + 4), LY, bad[i]);
       var mn = wmean(v), md = median(v);
       marker(md, true, "var(--median)", "median");
       marker(mn, false, "var(--mean)", "mean");
@@ -270,6 +293,120 @@
       status.innerHTML = '<span class="dot"></span><span>' + msg + "</span>";
     }
     draw();
+  }
+
+  // ── hero: where the action executed now comes from ─────────────────────
+  // Seven queries, made at the last seven steps. Each predicts the next seven actions from the step at which it was
+  // made, so all seven cover the action now; their predictions for it are dropped onto the number line below.
+  // Corrupting a query adds the same push to all of its predictions, newest query first, as in the widget below.
+  function ripplesWidget(root) {
+    if (!root) return;
+    var C0 = 150, DX = 62, Y0 = 30, DY = 20, NOW = M - 1, LY2 = 268, LO2 = -0.1, HI2 = 2.4, PUSH = 1.5, MAXQ = 5, q = 0, i, c;
+    function CX(k) { return C0 + k * DX; }
+    function V(v) { return C0 + ((v - LO2) / (HI2 - LO2)) * (CX(2 * M - 2) - C0); }
+    var head = document.createElement("div"); head.className = "rip-head";
+    head.innerHTML = '<span class="lbl">Where the action now comes from</span><span class="which">seven queries, one action dimension</span>';
+    root.appendChild(head);
+    var scroll = document.createElement("div"); scroll.className = "rip-scroll"; root.appendChild(scroll);
+    var svg = el("svg", { viewBox: "0 0 1000 330", role: "img",
+      "aria-label": "Seven overlapping action chunks, and the seven predictions they make for the action executed now" }, scroll);
+    var colB = Y0 + (M - 1) * DY + 16;
+    el("rect", { x: CX(NOW) - 22, y: Y0 - 18, width: 44, height: colB - Y0 + 18, rx: 10,
+      style: "fill:var(--median-soft);stroke:var(--median);stroke-opacity:.4;stroke-dasharray:4 4" }, svg);
+    txt(svg, CX(NOW), colB + 20, "NOW", { "text-anchor": "middle", "font-size": 13, "letter-spacing": "2",
+      style: "fill:var(--median);font-family:var(--caps)" });
+    txt(svg, 100, Y0 - 12, "query made at", { "text-anchor": "end", "font-size": 12 });
+    var rows = [];
+    for (i = 0; i < M; i++) {
+      var y = Y0 + i * DY, g = el("g", {}, svg), cells = [];
+      txt(g, 100, y + 4, i === M - 1 ? "t" : "t\u2212" + (M - 1 - i), { "text-anchor": "end", "font-size": 12.5 });
+      var cap = el("rect", { x: CX(i) - 17, y: y - 8, width: (M - 1) * DX + 34, height: 16, rx: 8, class: "rip-cell",
+        style: "fill:var(--median-soft);opacity:.75" }, g);
+      var star = el("path", { d: "M" + (CX(i) - 30) + " " + (y - 7) + "l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z", class: "rip-cell",
+        style: "fill:var(--mean);opacity:0" }, g);
+      for (c = i; c < i + M; c++) cells.push(el("polygon", { points: gemPts(CX(c), y, 9, 15), class: "rip-cell", "stroke-width": 1,
+        style: "fill:url(#g-gem);stroke:var(--median)" + (c === NOW ? "" : ";opacity:.7") }, g));
+      rows.push({ cap: cap, star: star, cells: cells });
+    }
+    // the predictions for now fall from the column onto the number line
+    var fan = [];
+    for (i = 0; i < M; i++) fan.push(el("line", { x1: CX(NOW), y1: colB + 30, x2: V(CLEAN[i]), y2: LY2 - 22, "stroke-width": 1,
+      style: "stroke:var(--median);stroke-opacity:.2" }, svg));
+    var band = el("rect", { y: LY2 - 21, height: 42, rx: 10, style: "fill:var(--median-soft);opacity:.85" }, svg);
+    el("line", { x1: CX(0) - 20, x2: CX(2 * M - 2) + 20, y1: LY2, y2: LY2, "stroke-width": 2, style: "stroke:var(--ink-3)" }, svg);
+    txt(svg, CX(0) - 20, LY2 + 52, "range of the clean predictions", { "font-size": 12.5, style: "fill:var(--median)" });
+    var drops = [];
+    for (i = 0; i < M; i++) {
+      var dg = el("g", { class: "rip-drop", style: "transform:translate(" + V(CLEAN[i]) + "px," + LY2 + "px)" }, svg);
+      drops.push({ g: dg, mark: crystalMark(dg, 0, 0, false, 15, 26) });
+    }
+    var med = el("g", { class: "rip-mark" }, svg), mea = el("g", { class: "rip-mark" }, svg);
+    el("path", { d: "M0 -17l-9 -12 9 -12 9 12z", style: "fill:var(--median);stroke:#fff;stroke-width:1.2" }, med);
+    txt(med, 0, -48, "median", { "text-anchor": "middle", "font-size": 15, "font-weight": 700, style: "fill:var(--median)" });
+    el("path", { d: "M0 17l-10 17h20z", style: "fill:var(--mean)" }, mea);
+    txt(mea, 14, 32, "mean", { "font-size": 15, "font-weight": 700, style: "fill:var(--mean)" });
+
+    var foot = document.createElement("div"); foot.className = "rip-foot";
+    foot.innerHTML = '<div class="controls"><button type="button" class="btn btn-primary" data-a="hit">Corrupt the newest clean query</button>' +
+      '<button type="button" class="btn" data-a="reset">Reset</button></div><div class="verdict" aria-live="polite"></div>';
+    root.appendChild(foot);
+    var hit = foot.querySelector('[data-a="hit"]'), verdict = foot.querySelector(".verdict");
+    var mean0 = wmean(CLEAN), med0 = median(CLEAN);
+    foot.addEventListener("click", function (e) {
+      var a = e.target.closest("button");
+      if (!a) return;
+      q = a.getAttribute("data-a") === "hit" ? Math.min(MAXQ, q + 1) : 0;
+      update();
+    });
+    function update() {
+      var v = CLEAN.map(function (x, k) { return k >= M - q ? x + PUSH + 0.07 * (k - (M - q)) : x; });
+      rows.forEach(function (r, k) {
+        var bad = k >= M - q;
+        r.cap.style.fill = bad ? "var(--mean-soft)" : "var(--median-soft)";
+        r.star.style.opacity = bad ? 1 : 0;
+        r.cells.forEach(function (cl) { cl.style.fill = bad ? "var(--mean)" : "url(#g-gem)"; cl.style.stroke = bad ? "#b0325c" : "var(--median)"; });
+      });
+      drops.forEach(function (d, k) {
+        var bad = k >= M - q;
+        d.g.style.transform = "translate(" + V(v[k]) + "px," + LY2 + "px)";
+        d.mark.firstChild.style.fill = bad ? "var(--mean)" : "url(#g-gem)";
+        d.mark.firstChild.style.stroke = bad ? "#b0325c" : "var(--median)";
+        fan[k].setAttribute("x2", V(v[k]));
+        fan[k].style.stroke = bad ? "var(--mean)" : "var(--median)";
+      });
+      var clean = CLEAN.slice(0, M - q), lo = Math.min.apply(null, clean), hi = Math.max.apply(null, clean);
+      band.setAttribute("x", V(lo) - 12); band.setAttribute("width", V(hi) - V(lo) + 24);
+      var md = median(v), mn = wmean(v);
+      med.style.transform = "translate(" + V(md) + "px," + LY2 + "px)";
+      mea.style.transform = "translate(" + V(mn) + "px," + LY2 + "px)";
+      var moved = "The mean moved <b style=\"color:var(--mean)\">" + fmt(mn - mean0) + "</b>, the median <b style=\"color:var(--median)\">" +
+        fmt(md - med0) + "</b>.";
+      if (q === 0) verdict.innerHTML = '<span class="pill ok">No corruption</span><span>The mean and the median sit close together.</span>';
+      else if (2 * q < M) verdict.innerHTML = '<span class="pill ok">Median inside the clean range</span><span>' + q + " of " + M + " corrupted. " + moved + "</span>";
+      else verdict.innerHTML = '<span class="pill bad">Guarantee gone</span><span>' + q + " of " + M + " corrupted, half or more. " + moved + "</span>";
+      hit.disabled = q >= MAXQ;
+    }
+    update();
+    // on a narrow screen the drawing scrolls sideways; start with the column of the action now in view
+    if (scroll.scrollWidth > scroll.clientWidth)
+      scroll.scrollLeft = (CX(NOW) / 1000) * scroll.scrollWidth - scroll.clientWidth * 0.6;
+  }
+
+  // her halo round the 0: two arcs of small hearts rising from below to just short of the top
+  function wreathAround(root) {
+    if (!root) return;
+    var svg = el("svg", { viewBox: "0 0 190 160" }, root), cx = 95, cy = 70, r = 62;
+    el("path", { d: "M" + (cx - 14) + " " + (cy + r - 2) + "A" + r + " " + r + " 0 1 1 " + (cx + 14) + " " + (cy + r - 2),
+      fill: "none", "stroke-width": 1, style: "stroke:var(--median);stroke-opacity:.25" }, svg);
+    for (var side = -1; side <= 1; side += 2) {
+      for (var k = 0; k < 10; k++) {
+        var u = (k + 0.6) / 10.6, an = Math.PI / 2 - side * (0.3 + (Math.PI - 0.55) * u);
+        var out = an - side * 0.55, hs = 15 - 7 * u;
+        var hx = cx + Math.cos(an) * r + Math.cos(out) * hs * 0.45, hy = cy + Math.sin(an) * r + Math.sin(out) * hs * 0.45;
+        el("path", { d: heartD(hx, hy, hs, out + Math.PI / 2),
+          style: "fill:" + (side < 0 ? "#c9b8ff" : "#f6b3d6") + ";fill-opacity:.75" }, svg);
+      }
+    }
   }
 
   // ── main table: dumbbell chart ──────────────────────────────────────────
@@ -305,7 +442,7 @@
         el("line", { x1: X(r.mean), x2: X(r.median), y1: cy, y2: cy, "stroke-width": 4, "stroke-linecap": "round",
           style: "stroke:var(--median-soft)" }, svg);
         el("circle", { cx: X(r.mean), cy: cy, r: 6.5, style: "fill:var(--mean)" }, svg);
-        el("circle", { cx: X(r.median), cy: cy, r: 6.5, style: "fill:var(--median)" }, svg);
+        el("path", { d: "M" + X(r.median) + " " + (cy - 8.5) + "l8 8.5 -8 8.5 -8 -8.5z", style: "fill:var(--median);stroke:#fff;stroke-width:1.2" }, svg);
         if (Math.abs(r.median - r.mean) < 1e-9)          // equal: keep the mean visible on top
           el("circle", { cx: X(r.mean), cy: cy, r: 3.2, style: "fill:var(--mean)" }, svg);
         txt(svg, 945, cy + 5, (r.delta >= 0 ? "+" : "") + r.delta.toFixed(3) + (r.holm ? " ★" : ""),
@@ -427,7 +564,7 @@
         drops back below half (numberLine above).
      Nothing moves with prefers-reduced-motion. */
   function initReverie() {
-    var hero = document.querySelector(".hero");
+    var hero = document.querySelector(".hero"), head = document.querySelector(".hero-head");
     var cv = null, g = null, W = 0, H = 0, raf = 0, t0 = 0, dark = false, stars = [], petals = [], sprites = null;
     var LILAC = cssVar("--median") || "#6a4fd8", PINK = cssVar("--accent") || "#d65aa8";
     var MIST = "#cdbdff", ROSE = "#ff9fd2", CYAN = "#8fe9ff", AMBER = "#ffcf7a", WHITE = "#ffffff";
@@ -697,7 +834,9 @@
     }
     function frame(now) {
       size();
-      var t = now - t0, c = [W / 2, H / 2], R = clamp(Math.min(H / 2 - 14, W / 2 - 14, 400), 110, 400), k, u;
+      var t = now - t0, k, u, hr = head ? head.getBoundingClientRect() : null, br = hero.getBoundingClientRect();
+      var c = [W / 2, hr ? hr.top - br.top + hr.height / 2 : H / 2];
+      var R = clamp(Math.min(hr ? hr.height / 2 + 60 : H / 2 - 14, W / 2 - 14, 400), 110, 400);
       // the sky first turns pale (d), then lifts (night falls to 0); the text turns dark again as soon as it is pale
       var dw = clamp((t - DAWN) / DAWND, 0, 1), d = easeOut(clamp(dw * 1.7, 0, 1));
       var night = t < DAWN ? easeOut(clamp(t / DUSK, 0, 1)) : 1 - dw * dw;
@@ -826,6 +965,7 @@
   }
 
   // ── wire up ─────────────────────────────────────────────────────────────
+  ripplesWidget(document.getElementById("w-hero"));
   numberLine(document.getElementById("w-sparse"), "sparse");
   numberLine(document.getElementById("w-common"), "common");
   if (window.MTE) {
@@ -833,6 +973,7 @@
     fig1Chart(document.getElementById("c-fig1"), document.getElementById("fig1-legend"), window.MTE.fig1);
   }
   bars();
+  wreathAround(document.querySelector(".wreath"));
   try {                                           // the opening once (at the top of the page), again on the title
     var reverie = initReverie(), title = document.querySelector(".hero h1");
     if ((window.scrollY || 0) < 160) setTimeout(reverie.play, 300);
