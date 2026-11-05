@@ -544,68 +544,63 @@
     });
   }
 
-  /* ── Cyrene: ripples of the past ─────────────────────────────────────────
-     Two touches in the spirit of the palette (Cyrene, Honkai: Star Rail: Ice, Path of Remembrance), drawn after how
-     her Ultimate and her Skill look in the game.
-     1. When the page opens, night falls over the hero and its text turns light. A figure of eight of light draws
-        itself with lights running round it: the loop of the Eternal Recurrence, which ran some thirty million times
-        before the Trailblazer came. A meteor falls into its crossing and ripples spread from there; in her character
-        story the meteor stands for the one who makes this cycle different, and this time the ripples spread for it.
-        Twelve crystals come on around it in four groups of three, one for each of the twelve demigods who took up the
-        coreflames of the Titans of Amphoreus (the Titans come in four triads: the Pillars, Fate, Creation, Calamity).
-        They flow into the centre and become a crystal heart in a wreath of small hearts, the thirteenth: her memories
-        fill the empty core of Demiurge, and she comes to hold all twelve coreflames. The heart flares and breaks, and
-        day returns. Its pieces go back to where the crystals stood and open as crystal flowers, which in her story she
-        plants in people's hearts; the petals that fall are the memories she loses on her way back to the past.
-        Clicking the title plays it again.
-     2. In the first widget the range of the clean predictions is the Zone her Skill opens, hung with sheer drapes and
-        flowers as in the game. It holds while fewer than half of the predictions are corrupted and scatters into
-        petals the moment half or more are, which is where the median's guarantee ends; it opens again when the count
-        drops back below half (numberLine above).
-     Nothing moves with prefers-reduced-motion. */
-  function initReverie() {
-    var hero = document.querySelector(".hero"), head = document.querySelector(".hero-head");
-    var cv = null, g = null, W = 0, H = 0, raf = 0, t0 = 0, dark = false, stars = [], petals = [], sprites = null;
-    var LILAC = cssVar("--median") || "#6a4fd8", PINK = cssVar("--accent") || "#d65aa8";
+  /* ── Opening: the method on one action, in Cyrene's colours ─────────────
+     A full-window opening of about five and a half seconds, drawn in the colours of her Ultimate (Cyrene, Honkai:
+     Star Rail), that tells the method on one action:
+     1. a frame of the can episode of the paper (Diffusion Policy, h=2, q=3; the median's arm, holding the can)
+        appears in a crystal frame: the action executed now;
+     2. the last eight queries each predicted that action. Their predictions fall onto a number line as crystals and
+        the three from attacked queries crack (her Talent gathers what the others give into one; here eight predictions
+        become one command);
+     3. her Zone opens over the range of the clean predictions. The weighted mean is pulled out of it; the median, a
+        crystal heart, stays inside;
+     4. the count over the evaluation: the median left the clean range 0 times in 53,704 timesteps, the mean in 81-93%;
+     5. the heart flies into the emblem above the title, and the page opens from it.
+     The eight values are drawn for the opening; the frame and the counts are the paper's.
+     The page is covered from the first paint (html.fx-on, set in the head, which lifts by itself if this never runs).
+     A click, tap, key or the wheel skips it, and that press does nothing else; ?still skips it; ?fx=0.6 holds the frame
+     at 60%. Clicking the title plays it again. Nothing plays under prefers-reduced-motion. */
+  function initIntro() {
+    var root = document.getElementById("intro"), doc = document.documentElement;
+    var emblem = document.querySelector(".emblem");
+    if (!root) return { play: function () {} };
+    window.__introTook = true;
+    var cv = root.querySelector("canvas"), g = cv.getContext("2d"), W = 0, H = 0, raf = 0, t0 = 0, playing = false;
+    var LILAC = cssVar("--median") || "#6a4fd8", MEAN = cssVar("--mean") || "#e0507e";
     var MIST = "#cdbdff", ROSE = "#ff9fd2", CYAN = "#8fe9ff", AMBER = "#ffcf7a", WHITE = "#ffffff";
-    // ms after play(): night falls over DUSK while the figure of eight draws itself from INF over INFD; the meteor
-    // falls for FALL and lands at HIT, and ripples spread, each over RIP; the crystals come on from LIT (about when the
-    // first ripple reaches them), flow into the centre from FLOW (each over FLOWD) and become the heart from HEART; it
-    // breaks at FLARE, day returns from DAWN over DAWND, and the flowers and petals are gone by DUR
-    var DUSK = 450, INF = 150, INFD = 800, FALL = 650, HIT = 1250, RIP = 1600, LIT = 1700, FLOW = 2900, FLOWD = 550,
-      HEART = 3350, FLARE = 4100, DAWN = 4200, DAWND = 1000, DUR = 7000;
-    // in units of the radius: the ring the crystals stand on. FLAT is how flat the water looks (a ring on it is FLAT
-    // times as tall as it is wide); SLOPE is the angle of the meteors below the horizontal.
-    var RING = 0.95, FLAT = 0.4, SLOPE = (34 * Math.PI) / 180;
-    // Four triads, lit clockwise from the upper left. They are spaced by length along the ring, not by angle: on a
-    // ring this flat, equal angles would crowd the triads at the sides into one row. Neighbours within a triad are a
-    // sixteenth of the way round, and the triads are twice as far from each other.
-    var lights = [], arc = [0], i, n = 720;
-    for (i = 1; i <= n; i++) {                    // length along the ring from its leftmost point, clockwise
-      var a0 = -Math.PI + (TAU * (i - 1)) / n, a1 = -Math.PI + (TAU * i) / n;
-      arc.push(arc[i - 1] + Math.hypot(Math.cos(a1) - Math.cos(a0), FLAT * (Math.sin(a1) - Math.sin(a0))));
-    }
-    for (i = 0; i < 12; i++) {
-      var tri = Math.floor(i / 3), m = i % 3, at = arc[n] * (1 / 8 + tri / 4 + (m - 1) / 16), j = 0;
-      while (arc[j + 1] < at) j++;
-      lights.push({ th: -Math.PI + (TAU * (j + (at - arc[j]) / (arc[j + 1] - arc[j]))) / n, t: LIT + 230 * tri + 65 * m,
-        c: hsl((330 + 30 * i) % 360, 0.85, 0.7) });
+    var T = 5600, FADE = 4550, FLY0 = 4650, FLY1 = 5250, OPEN0 = 5100;
+    var hold = (function () { var m = /[?&]fx=([0-9.]+)/.exec(location.search); return m ? clamp(+m[1], 0, 1) : -1; })();
+    var img = new Image(); img.onload = function () { if (hold >= 0) draw(hold * T); };
+    img.src = "static/img/intro_now.jpg";
+    // the eight predictions of one action dimension, oldest query first; the newest three come from attacked queries
+    var PRED = [0.20, 0.27, 0.24, 0.31, 0.22, 0.86, 0.91, 0.88], BAD = 3, NP = PRED.length;
+    var CLEANP = PRED.slice(0, NP - BAD), LO = Math.min.apply(null, CLEANP), HI = Math.max.apply(null, CLEANP);
+    var SORTED = PRED.slice().sort(function (a, b) { return a - b; }), MED = (SORTED[NP / 2 - 1] + SORTED[NP / 2]) / 2;
+    var MEANV = (function () {                    // ACT's weights, exp(-0.01 * age), age 0 = newest
+      var s = 0, w = 0;
+      for (var i = 0; i < NP; i++) { var wi = Math.exp(-0.01 * (NP - 1 - i)); s += wi * PRED[i]; w += wi; }
+      return s / w;
+    })();
+    var stars = [], R = Math.random;
+    for (var k = 0; k < 220; k++) {
+      stars.push({ x: R(), y: R(), r: 0.7 + R() * 1.3, a: 0.3 + R() * 0.6, w: 200 + R() * 500, ph: R() * TAU, big: k < 14,
+        c: [WHITE, WHITE, WHITE, MIST, CYAN, ROSE][Math.floor(R() * 6)] });
     }
 
-    function size() {                             // the canvas covers the hero, which changes height when the fonts arrive
-      var w = hero.clientWidth, h = hero.clientHeight;
-      if (w === W && h === H) return;
+    function E(t, a, b) { return clamp((t - a) / (b - a), 0, 1); }
+    function size() {
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = w; H = h; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    function glow(x, y, r, c, a) {                // a soft round light
+    function glow(x, y, r, c, a) {
       if (a <= 0 || r <= 0.3) return;
       var gr = g.createRadialGradient(x, y, 0, x, y, r);
       gr.addColorStop(0, rgba(c, a)); gr.addColorStop(0.4, rgba(c, a * 0.45)); gr.addColorStop(1, rgba(c, 0));
       g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
     }
-    function sparkle(x, y, s, c, a) {             // a four-pointed glint
+    function sparkle(x, y, s, c, a) {
       if (s <= 0.3 || a <= 0) return;
       g.beginPath();
       for (var k = 0; k < 8; k++) {
@@ -614,354 +609,244 @@
       }
       g.closePath(); g.fillStyle = rgba(c, a); g.fill();
     }
-    function beam(hx, hy, tx, ty, w, c0, c1, a) { // a streak of light, bright at its head (hx, hy) and gone at its tail
-      if (a <= 0) return;
-      var gr = g.createLinearGradient(hx, hy, tx, ty);
-      gr.addColorStop(0, rgba(c0, a)); gr.addColorStop(0.3, rgba(c1, a * 0.6)); gr.addColorStop(1, rgba(c1, 0));
-      g.strokeStyle = gr; g.lineWidth = w; g.lineCap = "round";
-      g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, ty); g.stroke();
+    function hex(x, y, w, h) {
+      g.beginPath(); g.moveTo(x, y - h / 2); g.lineTo(x + w / 2, y - h / 4); g.lineTo(x + w / 2, y + h / 4);
+      g.lineTo(x, y + h / 2); g.lineTo(x - w / 2, y + h / 4); g.lineTo(x - w / 2, y - h / 4); g.closePath();
     }
-    function flare(x, y, s, a) {                  // a star flare: a soft core and long thin spikes
-      if (a <= 0 || s <= 1) return;
-      glow(x, y, s * 0.22, WHITE, 0.9 * a);
-      var sp = [[0, 1], [Math.PI / 2, 0.42], [Math.PI / 4, 0.24], [-Math.PI / 4, 0.24]];
-      for (var k = 0; k < sp.length; k++) {
-        var dx = Math.cos(sp[k][0]) * s * sp[k][1], dy = Math.sin(sp[k][0]) * s * sp[k][1];
-        beam(x, y, x + dx, y + dy, 2, WHITE, MIST, a); beam(x, y, x - dx, y - dy, 2, WHITE, MIST, a);
+    function crystal(x, y, w, h, bad, a) {        // one prediction: a lilac cut crystal, or a rose one with a crack
+      if (a <= 0 || w <= 0.5) return;
+      g.save(); g.globalAlpha = a;
+      glow(x, y, h * 0.9, bad ? MEAN : MIST, 0.35);
+      hex(x, y, w, h);
+      var gr = g.createLinearGradient(x, y - h / 2, x, y + h / 2);
+      if (bad) { gr.addColorStop(0, "#ff9fbf"); gr.addColorStop(1, MEAN); }
+      else { gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.45, "#d9ccff"); gr.addColorStop(1, "#8f74ea"); }
+      g.fillStyle = gr; g.fill();
+      g.lineWidth = 1.2;
+      hex(x - 1.3, y, w, h); g.strokeStyle = rgba(CYAN, 0.6); g.stroke();
+      hex(x + 1.3, y, w, h); g.strokeStyle = rgba(ROSE, 0.6); g.stroke();
+      hex(x, y, w, h); g.strokeStyle = "rgba(255,255,255,0.9)"; g.stroke();
+      g.beginPath(); g.moveTo(x, y - h / 2 + 2); g.lineTo(x, y + h / 2 - 2); g.strokeStyle = "rgba(255,255,255,0.7)"; g.lineWidth = 0.9; g.stroke();
+      if (bad) {
+        g.beginPath(); g.moveTo(x - w * 0.25, y - h * 0.3); g.lineTo(x + w * 0.1, y - h * 0.05); g.lineTo(x - w * 0.1, y + h * 0.1);
+        g.lineTo(x + w * 0.25, y + h * 0.32); g.strokeStyle = WHITE; g.lineWidth = 1.5; g.stroke();
       }
+      g.restore();
     }
-    // night over the hero: indigo above, violet below, a nebula, stars. d (0 to 1) turns it into a pale dawn sky by way
-    // of a sunrise in violet and pink: mixing dark straight into light would pass through grey.
-    var SKY = [["#120c30", "#5a36b8", "#eee4ff"], ["#271a5e", "#c45bbf", "#fbe2f1"], ["#40257c", "#ff9ec4", "#fff0f6"]];
-    function skyAt(k, d) { return d < 0.5 ? mix(SKY[k][0], SKY[k][1], d * 2) : mix(SKY[k][1], SKY[k][2], d * 2 - 1); }
-    function sky(a, d, now) {
+    function heart(x, y, s, a) {                  // the median: a cut crystal heart
+      if (a <= 0 || s <= 1) return;
+      var pts = [];
+      for (var k = 0; k < 32; k++) {
+        var tt = (k / 32) * TAU, hx = 16 * Math.pow(Math.sin(tt), 3),
+          hy = -(13 * Math.cos(tt) - 5 * Math.cos(2 * tt) - 2 * Math.cos(3 * tt) - Math.cos(4 * tt)) - 2.5;
+        pts.push([x + (hx * s) / 32, y + (hy * s) / 32]);
+      }
+      function path(dx) { g.beginPath(); pts.forEach(function (p, i) { if (i) g.lineTo(p[0] + dx, p[1]); else g.moveTo(p[0] + dx, p[1]); }); g.closePath(); }
+      g.save(); g.globalAlpha = a;
+      glow(x, y, s * 1.3, ROSE, 0.5);
+      path(0);
+      var gr = g.createRadialGradient(x - s * 0.18, y - s * 0.15, 0, x, y, s * 0.65);
+      gr.addColorStop(0, "rgba(255,255,255,0.95)"); gr.addColorStop(0.45, rgba(ROSE, 0.85)); gr.addColorStop(1, rgba(LILAC, 0.9));
+      g.fillStyle = gr; g.fill();
+      for (var q = 0; q < pts.length; q += 4) {
+        var p0 = pts[q], p1 = pts[(q + 4) % pts.length];
+        g.beginPath(); g.moveTo(x - s * 0.05, y); g.lineTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.closePath();
+        g.fillStyle = rgba([CYAN, ROSE, MIST, "#9fb6ff"][(q / 4) % 4], 0.25); g.fill();
+      }
+      path(-1.5); g.strokeStyle = rgba(CYAN, 0.6); g.lineWidth = 1.2; g.stroke();
+      path(1.5); g.strokeStyle = rgba(ROSE, 0.6); g.stroke();
+      path(0); g.strokeStyle = WHITE; g.lineWidth = Math.max(1.5, s * 0.04); g.stroke();
+      g.restore();
+    }
+    // fonts for the canvas text: small caps for labels, the display serif for numbers and names, Inter for prose
+    function caps(px) { return px.toFixed(1) + 'px "Marcellus SC", "Cormorant Garamond", Georgia, serif'; }
+    function serif(px, style) { return (style || "700") + " " + px.toFixed(1) + 'px "Cormorant Garamond", Georgia, serif'; }
+    function sans(px, w) { return (w || "400") + " " + px.toFixed(1) + "px Inter, system-ui, sans-serif"; }
+    function label(text, x, y, font, color, a, align) {
       if (a <= 0) return;
-      g.globalAlpha = a;
+      g.save(); g.globalAlpha = a; g.fillStyle = color; g.textAlign = align || "center"; g.textBaseline = "middle";
+      g.font = font; g.fillText(text, x, y); g.restore();
+    }
+    function sky(now, a) {
       var gr = g.createLinearGradient(0, 0, 0, H);
-      gr.addColorStop(0, skyAt(0, d)); gr.addColorStop(0.6, skyAt(1, d)); gr.addColorStop(1, skyAt(2, d));
-      g.fillStyle = gr; g.fillRect(0, 0, W, H);
-      var m = Math.max(W, H) * 0.5, nb = g.createRadialGradient(W / 2, H * 0.58, 0, W / 2, H * 0.58, m);
-      nb.addColorStop(0, rgba(mix("#9664f0", "#ffffff", d), 0.42)); nb.addColorStop(0.45, rgba(PINK, 0.14));
-      nb.addColorStop(1, rgba(PINK, 0));
+      gr.addColorStop(0, "#120c30"); gr.addColorStop(0.6, "#241a5c"); gr.addColorStop(1, "#3b2479");
+      g.globalAlpha = a; g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      var nb = g.createRadialGradient(W / 2, H * 0.55, 0, W / 2, H * 0.55, Math.max(W, H) * 0.55);
+      nb.addColorStop(0, "rgba(150,100,240,0.35)"); nb.addColorStop(0.5, "rgba(214,90,168,0.10)"); nb.addColorStop(1, "rgba(214,90,168,0)");
       g.fillStyle = nb; g.fillRect(0, 0, W, H);
       g.globalCompositeOperation = "lighter";
-      for (var k = 0; k < stars.length && d < 1; k++) {
-        var s = stars[k], tw = (0.6 + 0.4 * Math.sin(now / s.w + s.ph)) * (1 - d);
-        if (s.big) sparkle(s.x * W, s.y * H, s.r * 3.5, s.c, 0.85 * tw);
+      stars.forEach(function (s) {
+        var tw = 0.6 + 0.4 * Math.sin(now / s.w + s.ph);
+        if (s.big) sparkle(s.x * W, s.y * H, s.r * 3.4, s.c, 0.8 * tw);
         else { g.fillStyle = rgba(s.c, s.a * tw); g.fillRect(s.x * W, s.y * H, s.r, s.r); }
-      }
-      g.globalCompositeOperation = "source-over";
-      g.globalAlpha = 1;
-    }
-    function ripple(c, R, q, col, a) {            // one ring on the water; q runs from 0 to 1
-      if (q < 0 || q > 1 || a <= 0) return;
-      var rx = R * (0.05 + 1.45 * easeOut(q)), al = 0.8 * a * Math.pow(1 - q, 1.3);
-      g.lineWidth = Math.max(1.2, R * 0.01) * (1 - 0.5 * q);
-      g.strokeStyle = rgba(col, al); g.beginPath(); g.ellipse(c[0], c[1], rx, rx * FLAT, 0, 0, TAU); g.stroke();
-      g.strokeStyle = rgba(col, 0.35 * al); g.beginPath(); g.ellipse(c[0], c[1], 0.94 * rx, 0.94 * rx * FLAT, 0, 0, TAU); g.stroke();
-    }
-    // the loop of the Eternal Recurrence: a figure of eight of light, open to fraction f from where it crosses, with
-    // lights running round it
-    function infinity(c, R, f, a, t) {
-      if (f <= 0 || a <= 0) return;
-      var A = R * 1.6, B = R * 0.62, ph = (f * Math.PI) / 2, N = 56, k, s, j;
-      function open(th) { th = ((th % TAU) + TAU) % TAU; return Math.min(th, TAU - th) <= ph || Math.abs(th - Math.PI) <= ph; }
-      function at(th) { return [c[0] + A * Math.sin(th), c[1] + B * Math.sin(th) * Math.cos(th)]; }
-      // strands of the ribbon: colour, how far it wanders from the curve, width, opacity
-      var strands = [[MIST, 0, 2.4, 0.75], [CYAN, 0.04, 1.2, 0.5], [ROSE, -0.04, 1.2, 0.5], [WHITE, 0.015, 1, 0.65]];
-      g.lineCap = "round"; g.lineJoin = "round";
-      for (s = 0; s < strands.length; s++) {
-        var st = strands[s];
-        g.strokeStyle = rgba(st[0], st[3] * a); g.lineWidth = st[2];
-        for (var b = 0; b < 2; b++) {             // the two strokes that cross at the centre, about theta = 0 and theta = pi
-          g.beginPath();
-          for (k = 0; k <= N; k++) {
-            var th = b * Math.PI - ph + (2 * ph * k) / N, q = at(th);
-            q[1] += st[1] * R * Math.sin(3 * th + t / 400);
-            if (k) g.lineTo(q[0], q[1]); else g.moveTo(q[0], q[1]);
-          }
-          g.stroke();
-        }
-      }
-      for (k = 0; k < 30; k++) {                  // glints along it, spread round by the golden angle
-        var t2 = (k * 2.39996) % TAU, q2 = at(t2);
-        if (!open(t2)) continue;
-        sparkle(q2[0], q2[1], R * 0.028 * (0.6 + 0.4 * Math.sin(t / 110 + k)), k % 3 ? WHITE : CYAN, 0.85 * a);
-      }
-      for (k = 0; k < 8; k++) {                   // and the cycles going round, each with a short tail
-        for (j = 0; j < 4; j++) {
-          var t3 = (k / 8) * TAU + t / 420 - j * 0.07, q3 = at(t3);
-          if (open(t3)) glow(q3[0], q3[1], R * (0.05 - 0.009 * j), j ? MIST : WHITE, (0.9 - 0.2 * j) * a);
-        }
-      }
-    }
-    function crystal(x, y, w, h, hue, a, gold, rot) { // an elongated hexagonal crystal, lit from inside in its own colour
-      if (w <= 0.5 || a <= 0) return;
-      g.save(); g.translate(x, y); g.rotate(rot);
-      function hex(dx) {
-        g.beginPath(); g.moveTo(dx, -h / 2); g.lineTo(dx + w / 2, -h / 4); g.lineTo(dx + w / 2, h / 4);
-        g.lineTo(dx, h / 2); g.lineTo(dx - w / 2, h / 4); g.lineTo(dx - w / 2, -h / 4); g.closePath();
-      }
-      hex(0);
-      var gr = g.createLinearGradient(0, -h / 2, 0, h / 2);
-      gr.addColorStop(0, rgba("#9b7cf5", 0.42 * a)); gr.addColorStop(1, rgba("#4a2ba6", 0.42 * a));
-      g.fillStyle = gr; g.fill();
-      glow(0, 0, h * 0.4, hue, 0.72 * a);         // the light inside, in its own colour
-      g.lineWidth = 1.1;                          // the cut edges, with a fringe of colour on either side
-      hex(-1.5); g.strokeStyle = rgba(CYAN, 0.55 * a); g.stroke();
-      hex(1.5); g.strokeStyle = rgba(ROSE, 0.55 * a); g.stroke();
-      hex(0); g.strokeStyle = rgba("#f1ebff", 0.95 * a); g.lineWidth = 1.4; g.stroke();
-      g.beginPath(); g.moveTo(0, -h / 2); g.lineTo(0, h / 2); g.moveTo(-w / 2, -h / 4); g.lineTo(0, 0); g.lineTo(w / 2, -h / 4);
-      g.strokeStyle = rgba("#f1ebff", 0.35 * a); g.lineWidth = 0.8; g.stroke();   // facets
-      if (gold > 0) { hex(0); g.strokeStyle = rgba(AMBER, gold * a); g.lineWidth = 2.6; g.stroke(); }
-      g.restore();
-    }
-    function heartPath(x, y, s, rot) {            // a heart about s wide, point down, turned by rot
-      var pts = [], cs = Math.cos(rot), sn = Math.sin(rot);
-      for (var k = 0; k < 32; k++) {
-        var t = (k / 32) * TAU, hx = 16 * Math.pow(Math.sin(t), 3),
-          hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) - 2.5;
-        hx *= s / 32; hy *= s / 32;
-        pts.push([x + hx * cs - hy * sn, y + hx * sn + hy * cs]);
-      }
-      g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
-      for (k = 1; k < pts.length; k++) g.lineTo(pts[k][0], pts[k][1]);
-      g.closePath();
-      return pts;
-    }
-    function crystalHeart(x, y, s, a) {           // a cut crystal heart: a glow, a body, facets in shifting colours, a rim
-      if (s <= 1 || a <= 0) return;
-      glow(x, y, s * 1.2, ROSE, 0.42 * a);
-      var pts = heartPath(x, y, s, 0), k;
-      var gr = g.createRadialGradient(x - s * 0.18, y - s * 0.15, 0, x, y, s * 0.65);
-      gr.addColorStop(0, rgba(WHITE, 0.6 * a)); gr.addColorStop(0.45, rgba(ROSE, 0.42 * a)); gr.addColorStop(1, rgba(LILAC, 0.55 * a));
-      g.fillStyle = gr; g.fill();
-      var IR = [CYAN, ROSE, MIST, "#9fb6ff"];
-      for (k = 0; k < pts.length; k += 2) {       // facets: triangles from a point inside to the rim, in turn
-        var p0 = pts[k], p1 = pts[(k + 2) % pts.length];
-        g.beginPath(); g.moveTo(x - s * 0.06, y - s * 0.02); g.lineTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.closePath();
-        g.fillStyle = rgba(IR[(k / 2) % 4], 0.32 * a); g.fill();
-        g.strokeStyle = rgba(WHITE, 0.28 * a); g.lineWidth = 0.8; g.stroke();
-      }
-      heartPath(x - 1.5, y, s, 0); g.strokeStyle = rgba(CYAN, 0.5 * a); g.lineWidth = 1.2; g.stroke();
-      heartPath(x + 1.5, y, s, 0); g.strokeStyle = rgba(ROSE, 0.5 * a); g.stroke();
-      heartPath(x, y, s, 0); g.strokeStyle = rgba(WHITE, 0.95 * a); g.lineWidth = Math.max(1.6, s * 0.03); g.stroke();
-    }
-    function wreath(x, y, r, f, a) {              // her halo: two arcs of small white hearts rising round the heart
-      if (f <= 0 || a <= 0) return;
-      for (var side = -1; side <= 1; side += 2) {
-        var span = TAU / 2 - 0.6;                  // each arc runs from below the heart to just short of the top
-        g.beginPath();
-        for (var k = 0; k <= 40 * f; k++) {
-          var an = Math.PI / 2 - side * (0.35 + (span * k) / 40), px = x + Math.cos(an) * r, py = y + Math.sin(an) * r;
-          if (k) g.lineTo(px, py); else g.moveTo(px, py);
-        }
-        g.strokeStyle = rgba(WHITE, 0.55 * a); g.lineWidth = 1.2; g.stroke();
-        for (var q = 0; q < 12; q++) {            // the leaves are hearts, smaller towards the top, tilted the way it grows
-          var u = (q + 0.6) / 12.6;
-          if (u > f) break;
-          var an2 = Math.PI / 2 - side * (0.35 + span * u), hs = r * (0.2 - 0.1 * u) * Math.min(1, (f - u) * 8);
-          var out = an2 - side * 0.55, hx = x + Math.cos(an2) * r + Math.cos(out) * hs * 0.45, hy = y + Math.sin(an2) * r + Math.sin(out) * hs * 0.45;
-          heartPath(hx, hy, hs, out + Math.PI / 2);
-          g.fillStyle = rgba(WHITE, 0.92 * a); g.fill();
-        }
-      }
-    }
-    function shard(x, y, s, rot, hue) {           // a piece of the heart in flight
-      glow(x, y, s * 2.4, hue, 0.5);
-      g.save(); g.translate(x, y); g.rotate(rot);
-      g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.45, 0); g.lineTo(0, s * 0.8); g.lineTo(-s * 0.45, 0); g.closePath();
-      g.fillStyle = "rgba(246,242,255,0.95)"; g.fill(); g.strokeStyle = rgba(LILAC, 0.85); g.lineWidth = 1; g.stroke();
-      g.restore();
-    }
-    // a crystal flower: two rings of five pointed petals, each cut with a facet down its middle and fringed with colour
-    // on its edges, and a small gem at its heart in the demigod's own colour (six petals would read as a snowflake).
-    // It is drawn plainly, not as light, so that it shows by day as well.
-    function crystalBloom(x, y, r, hue, a) {
-      if (r <= 0.5 || a <= 0) return;
-      g.save(); g.translate(x, y); g.globalAlpha = a;
-      glow(0, 0, r * 1.7, hue, 0.38);
-      for (var ring = 0; ring < 2; ring++) {
-        var L = r * (ring ? 0.64 : 1), w = L * (ring ? 0.6 : 0.66);
-        for (var k = 0; k < 5; k++) {
-          g.save(); g.rotate(((k + ring * 0.5) * TAU) / 5);
-          for (var side = -1; side <= 1; side += 2) {   // each half of the petal, so that its two edges take two colours
-            g.beginPath(); g.moveTo(0, 0);
-            g.bezierCurveTo(side * w * 0.6, -L * 0.24, side * w * 0.55, -L * 0.7, 0, -L); g.lineTo(0, 0); g.closePath();
-            var gr = g.createLinearGradient(0, 0, 0, -L);
-            gr.addColorStop(0, ring ? "rgba(255,159,210,0.9)" : "rgba(185,163,255,0.9)"); gr.addColorStop(1, "rgba(255,255,255,0.95)");
-            g.fillStyle = gr; g.fill();
-            g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(side * w * 0.6, -L * 0.24, side * w * 0.55, -L * 0.7, 0, -L);
-            g.strokeStyle = side > 0 ? rgba(CYAN, 0.8) : rgba(ROSE, 0.8); g.lineWidth = 1.1; g.stroke();
-          }
-          g.beginPath(); g.moveTo(0, -L * 0.14); g.lineTo(w * 0.2, -L * 0.55); g.lineTo(0, -L * 0.88); g.lineTo(-w * 0.2, -L * 0.55); g.closePath();
-          g.strokeStyle = "rgba(255,255,255,0.85)"; g.lineWidth = 0.8; g.stroke();   // the facet
-          g.beginPath(); g.moveTo(0, 0); g.bezierCurveTo(w * 0.6, -L * 0.24, w * 0.55, -L * 0.7, 0, -L);
-          g.bezierCurveTo(-w * 0.55, -L * 0.7, -w * 0.6, -L * 0.24, 0, 0);
-          g.strokeStyle = rgba(LILAC, 0.55); g.lineWidth = 0.7; g.stroke();          // a fine outline, so it shows on white
-          g.restore();
-        }
-      }
-      g.beginPath(); g.arc(0, 0, r * 0.17, 0, TAU); g.fillStyle = hue; g.fill();
-      g.strokeStyle = "rgba(255,255,255,0.95)"; g.lineWidth = 1; g.stroke();
-      g.restore();
-    }
-    function makeSprites() {                      // petals, drawn once: rounded, a little notched, narrowing to the base
-      return [["#f06aae", "#ffe3f1"], ["#b394ff", "#f7f1ff"], ["#ff9ec9", "#ffffff"]].map(function (v) {
-        var oc = document.createElement("canvas"), o;
-        oc.width = 48; oc.height = 64; o = oc.getContext("2d"); o.translate(24, 32);
-        o.beginPath(); o.moveTo(0, 28); o.bezierCurveTo(-22, 14, -22, -18, -8, -27); o.quadraticCurveTo(0, -21, 8, -27);
-        o.bezierCurveTo(22, -18, 22, 14, 0, 28); o.closePath();
-        var gr = o.createLinearGradient(0, 28, 0, -27); gr.addColorStop(0, v[0]); gr.addColorStop(1, v[1]);
-        o.fillStyle = gr; o.fill(); o.strokeStyle = "rgba(255,255,255,.65)"; o.lineWidth = 1.2; o.stroke();
-        o.beginPath(); o.moveTo(0, 22); o.quadraticCurveTo(2.5, 0, 0, -18); o.strokeStyle = "rgba(255,255,255,.4)"; o.stroke();
-        return oc;
       });
+      g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
     }
-    function spawn() {
-      var R = Math.random, k, C = [WHITE, WHITE, WHITE, MIST, CYAN, ROSE];
-      stars.length = 0; petals.length = 0;
-      for (k = 0; k < 170; k++) {
-        stars.push({ x: R(), y: R(), r: 0.8 + R() * 1.2, a: 0.35 + R() * 0.55, w: 180 + R() * 420, ph: R() * TAU,
-          c: C[Math.floor(R() * C.length)], big: k < 12 });
-      }
-      for (k = 0; k < 70; k++) {                  // the petals the heart breaks into: speeds in px/ms for a radius of 230
-        var an = R() * TAU, v = 0.25 + R() * 0.75;
-        petals.push({ vx: Math.cos(an) * v * 1.6, vy: Math.sin(an) * v * 0.55 - 0.12, s: 0.35 + R() * 0.45, rot: R() * TAU,
-          vr: (R() - 0.5) * 0.008, fl: R() * TAU, vf: 0.004 + R() * 0.006, sw: 6 + R() * 14, wf: 0.002 + R() * 0.002,
-          sp: Math.floor(R() * 3), life: 1900 + R() * 700 });
-      }
+    function emblemAt() {
+      if (!emblem) return [W / 2, 80, 40];
+      var r = emblem.getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2, r.width];
     }
-    function frame(now) {
-      size();
-      var t = now - t0, k, u, hr = head ? head.getBoundingClientRect() : null, br = hero.getBoundingClientRect();
-      var c = [W / 2, hr ? hr.top - br.top + hr.height / 2 : H / 2];
-      var R = clamp(Math.min(hr ? hr.height / 2 + 60 : H / 2 - 14, W / 2 - 14, 400), 110, 400);
-      // the sky first turns pale (d), then lifts (night falls to 0); the text turns dark again as soon as it is pale
-      var dw = clamp((t - DAWN) / DAWND, 0, 1), d = easeOut(clamp(dw * 1.7, 0, 1));
-      var night = t < DAWN ? easeOut(clamp(t / DUSK, 0, 1)) : 1 - dw * dw;
-      if (dark && t >= DAWN + 120) { dark = false; hero.classList.remove("night"); }
+
+    function draw(t) {
+      // k scales everything with the window, with a floor so that text stays readable on a phone
+      var k = clamp(Math.min(W / 1440, H / 900) * 1.15, 0.62, 1.3), keep = 1 - E(t, FADE, FADE + 320), i, narrow = W < 700;
+      var IH = Math.min(H * 0.3, (W * (W < 700 ? 0.86 : 0.46) * 541) / 900), IW = (IH * 900) / 541, iy = H * (W < 700 ? 0.22 : 0.27);
+      var LW = Math.min(W * (narrow ? 0.88 : 0.84), 880), x0 = W / 2 - LW / 2, ly = H * (narrow ? 0.58 : 0.62);
+      function X(v) { return x0 + v * LW; }
       g.clearRect(0, 0, W, H);
-      sky(night, d, now);
-      night *= 1 - d;                             // what shines fades as the sky turns pale
-      g.globalCompositeOperation = "lighter";      // everything that shines adds its light to the night
-
-      // the loop (her Ultimate: "of the vow, infinity") is there from the start; it brightens as the meteor strikes it,
-      // and gives way as the crystals move in
-      var hit = t >= HIT && t < HIT + 500 ? 1 - (t - HIT) / 500 : 0;
-      infinity(c, R, easeOut(clamp((t - INF) / INFD, 0, 1)), night * clamp(1 - (t - FLOW) / 700, 0, 1) * (1 + 0.8 * hit), t);
-      var p = (t - (HIT - FALL)) / FALL;
-      if (p >= 0 && p < 1) {                      // the meteor falls into its crossing
-        var e = Math.pow(p, 1.6), sx = c[0] + Math.cos(SLOPE) * 2.3 * R, sy = c[1] - Math.sin(SLOPE) * 2.3 * R;
-        var mx = sx + (c[0] - sx) * e, my = sy + (c[1] - sy) * e, mux = -Math.cos(SLOPE), muy = Math.sin(SLOPE);
-        var ml = R * (0.4 + 0.9 * Math.min(1, 1.5 * p)), nx = -muy * 2.2, ny = mux * 2.2;
-        beam(mx + nx, my + ny, mx + nx - mux * ml, my + ny - muy * ml, 3, CYAN, CYAN, 0.5);
-        beam(mx - nx, my - ny, mx - nx - mux * ml, my - ny - muy * ml, 3, ROSE, ROSE, 0.5);
-        beam(mx, my, mx - mux * ml, my - muy * ml, Math.max(3, R * 0.02), WHITE, MIST, 0.95);
-        glow(mx, my, R * 0.12, MIST, 0.9); sparkle(mx, my, R * 0.08, WHITE, 1);
+      sky(t, 1);
+      // 1. the action executed now: a frame of the can episode, in a crystal frame
+      var fi = E(t, 150, 750), fy = iy + (1 - easeOut(fi)) * 30 * k;
+      if (fi > 0 && keep > 0) {
+        g.save(); g.globalAlpha = fi * keep;
+        glow(W / 2, fy, IW * 0.75, LILAC, 0.25);
+        g.fillStyle = "#0d0a24"; g.fillRect(W / 2 - IW / 2 - 6, fy - IH / 2 - 6, IW + 12, IH + 12);
+        if (img.complete && img.naturalWidth) g.drawImage(img, W / 2 - IW / 2, fy - IH / 2, IW, IH);
+        g.strokeStyle = rgba(MIST, 0.85); g.lineWidth = 1.4; g.strokeRect(W / 2 - IW / 2 - 6, fy - IH / 2 - 6, IW + 12, IH + 12);
+        g.strokeStyle = rgba(MIST, 0.35); g.lineWidth = 1; g.strokeRect(W / 2 - IW / 2 - 11, fy - IH / 2 - 11, IW + 22, IH + 22);
+        g.restore();
+        crystal(W / 2 - IW / 2 - 9, fy - IH / 2 - 9, 10 * k, 18 * k, false, fi * keep);
+        crystal(W / 2 + IW / 2 + 9, fy + IH / 2 + 9, 10 * k, 18 * k, false, fi * keep);
+        label("THE ACTION EXECUTED NOW", W / 2, fy - IH / 2 - 30 * k, caps(13 * k), MIST, fi * keep);
       }
-      if (t >= HIT) {                             // and the river of life ripples where it lands
-        var th = t - HIT;
-        if (th < 380) { glow(c[0], c[1], R * (0.15 + (0.5 * th) / 380), MIST, 0.9 * (1 - th / 380)); flare(c[0], c[1], R * (1 - th / 380), 1 - th / 380); }
-        for (k = 0; k < 3; k++) ripple(c, R, (th - 220 * k) / RIP, [MIST, ROSE, CYAN][k], night);
+      // 2. the eight predictions of it fall onto a number line; the three from attacked queries crack
+      var la = E(t, 800, 1200) * keep;
+      if (la > 0) {
+        g.save(); g.globalAlpha = la; g.strokeStyle = rgba(MIST, 0.6); g.lineWidth = 1.6;
+        g.beginPath(); g.moveTo(x0 - 20, ly); g.lineTo(x0 + LW + 20, ly); g.stroke(); g.restore();
+        label("EIGHT QUERIES PREDICTED IT", W / 2, ly + 86 * k, caps(12.5 * k), MIST, la * (1 - E(t, 3500, 3800)));
       }
-
-      // twelve crystals come on around it, one for each demigod, each with a gold edge as it lights (as a teammate is
-      // picked out in the game); then each flows into the centre along a curve that turns as it closes in
-      var arrived = 0;
-      for (k = 0; k < 12; k++) {
-        var L = lights[k], lt = t - L.t;
-        if (lt < 0) continue;
-        var dep = 0.85 + 0.15 * Math.sin(L.th), f0 = FLOW + 25 * k;
-        u = (t - f0) / FLOWD;
-        if (u >= 1) { arrived++; continue; }
-        var cx = c[0] + Math.cos(L.th) * RING * R, cy = c[1] + Math.sin(L.th) * RING * R * FLAT + Math.sin(now / 500 + k) * 3 * dep;
-        var sc = dep * Math.max(0, easeOutBack(clamp(lt / 320, 0, 1))), rot = 0;
-        if (u > 0) {
-          var ff = easeInOut(u), an = L.th + 0.8 * ff, rr = RING * R * (1 - ff);
-          var ox = cx, oy = cy;
-          cx = c[0] + Math.cos(an) * rr; cy = c[1] + Math.sin(an) * rr * FLAT; sc *= 1 - 0.75 * ff; rot = 1.4 * ff;
-          beam(cx, cy, cx + (ox - cx) * 0.35, cy + (oy - cy) * 0.35, 2, WHITE, L.c, 0.7 * night);
+      // 3. her Zone opens over the clean range (drawn under the crystals)
+      var zo = easeOut(E(t, 2350, 2900)) * keep;
+      if (zo > 0) {
+        var zx0 = X(LO) - 18 * k, zx1 = X(HI) + 18 * k, zc = (zx0 + zx1) / 2, zw = (zx1 - zx0) * zo, zh = 70 * k;
+        g.save();
+        var zg = g.createLinearGradient(0, ly - zh / 2, 0, ly + zh / 2);
+        zg.addColorStop(0, rgba(MIST, 0.32)); zg.addColorStop(1, rgba(ROSE, 0.14));
+        g.fillStyle = zg; g.fillRect(zc - zw / 2, ly - zh / 2, zw, zh);
+        g.strokeStyle = rgba(MIST, 0.8); g.lineWidth = 1.2; g.strokeRect(zc - zw / 2, ly - zh / 2, zw, zh);
+        // the drapes along its top, knotted with flowers
+        var bay = 26 * k, n = Math.max(1, Math.round(zw / bay));
+        g.beginPath();
+        for (i = 0; i < n; i++) {
+          var a = zc - zw / 2 + (i * zw) / n, b = zc - zw / 2 + ((i + 1) * zw) / n;
+          g.moveTo(a, ly - zh / 2); g.quadraticCurveTo((a + b) / 2, ly - zh / 2 + 12 * k, b, ly - zh / 2);
         }
-        crystal(cx, cy, R * 0.13 * sc, R * 0.3 * sc, L.c, night, clamp(1 - lt / 520, 0, 1), rot);
+        g.strokeStyle = "rgba(255,255,255,0.85)"; g.lineWidth = 1.4; g.stroke();
+        for (i = 0; i <= n; i++) glow(zc - zw / 2 + (i * zw) / n, ly - zh / 2, 4 * k, ROSE, 0.9);
+        g.restore();
+        if (!narrow) label("THE CLEAN RANGE", zx0, ly + zh / 2 + 16 * k, caps(11 * k), MIST, zo * (1 - E(t, 3500, 3800)), "left");
       }
-      // the thirteenth: they become a crystal heart in a wreath of small hearts. It flares and breaks, and day returns.
-      var hb = clamp((t - HEART) / 600, 0, 1), whole = clamp(1 - (t - FLARE) / 160, 0, 1);
-      if (t >= FLOW) glow(c[0], c[1], R * (0.12 + (0.12 * arrived) / 12), ROSE, ((0.55 * arrived) / 12) * whole);
-      if (hb > 0) {
-        var hs = R * 0.42 * Math.max(0, easeOutBack(hb)) * (1 + 0.035 * Math.sin(now / 150));
-        crystalHeart(c[0], c[1] + R * 0.02, hs, whole);
-        wreath(c[0], c[1], R * 0.5, easeOut(clamp((t - HEART - 150) / 750, 0, 1)), clamp(1 - (t - FLARE) / 450, 0, 1));
-      }
-      u = (t - FLARE) / 650;
-      if (u > -0.25 && u < 1) {
-        var fe = u < 0 ? 1 + u / 0.25 : 1 - u;
-        flare(c[0], c[1], R * 1.9 * fe, fe);
-        glow(c[0], c[1], R * 0.6 * fe, WHITE, 0.6 * fe);
-      }
-      u = clamp(dw * 1.7, 0, 1);
-      if (u > 0 && u < 1) {                       // dawn: a warm light that spreads from the heart as the sky turns pale
-        var dg = g.createRadialGradient(c[0], c[1], 0, c[0], c[1], Math.max(W, H) * (0.25 + 0.6 * u)), da = Math.sin(Math.PI * u);
-        dg.addColorStop(0, rgba("#fff1e6", 0.4 * da)); dg.addColorStop(0.5, rgba(ROSE, 0.18 * da)); dg.addColorStop(1, rgba(ROSE, 0));
-        g.fillStyle = dg; g.fillRect(0, 0, W, H);
-      }
-      g.globalCompositeOperation = "source-over";
-
-      // its pieces go back to where the twelve crystals stood and open there as crystal flowers, and petals fall:
-      // the memories she loses on her way back to the past
-      var gone = clamp(1 - (t - (DUR - 900)) / 900, 0, 1);
-      for (k = 0; k < 12; k++) {
-        var Lk = lights[k], dk = 0.85 + 0.15 * Math.sin(Lk.th), f1 = FLARE + 40 + 25 * k;
-        u = (t - f1) / 550;
-        if (u <= 0) continue;
-        if (u < 1) {                              // on its way out, along a curve that turns as it goes
-          var fo = easeOut(u), an3 = Lk.th - 0.8 * (1 - fo), rr3 = RING * R * fo;
-          shard(c[0] + Math.cos(an3) * rr3, c[1] + Math.sin(an3) * rr3 * FLAT, R * 0.068 * dk, 9 * u, Lk.c);
-          continue;
+      for (i = 0; i < NP; i++) {
+        var ft = E(t, 950 + i * 160, 950 + i * 160 + 560);
+        if (ft <= 0) continue;
+        var bad = i >= NP - BAD, sx = W / 2 + (i - (NP - 1) / 2) * 14 * k, sy = iy + IH / 2;
+        var e = ft < 1 ? ft * ft : 1, xx = sx + (X(PRED[i]) - sx) * easeOut(ft), yy = sy + (ly - sy) * e;
+        if (ft >= 1) yy = ly - Math.sin(Math.min(1, (t - (950 + i * 160 + 560)) / 220) * Math.PI) * 6 * k;
+        crystal(xx, yy, 15 * k, 27 * k, bad && ft >= 1, keep);
+        if (bad && ft >= 1) {
+          var st = E(t, 950 + i * 160 + 560, 950 + i * 160 + 900);
+          sparkle(xx, ly - 26 * k, 7 * k * (st < 1 ? Math.sin(Math.PI * st) + 0.6 : 0.6), MEAN, keep);
         }
-        crystalBloom(c[0] + Math.cos(Lk.th) * RING * R, c[1] + Math.sin(Lk.th) * RING * R * FLAT,
-          R * 0.11 * dk * Math.max(0, easeOutBack(clamp((t - f1 - 550) / 450, 0, 1))), Lk.c, gone);
       }
-      var ps = R / 230, pz = Math.max(0.7, ps);
-      for (k = 0; k < petals.length; k++) {
-        var pe = petals[k], pt = t - FLARE, pu = pt / pe.life;
-        if (pu < 0 || pu > 1) continue;
-        var dr = (1 - Math.exp(-0.0022 * pt)) / 0.0022;   // air slows them quickly; then they sink and sway
-        var px = c[0] + pe.vx * ps * dr + Math.sin(pt * pe.wf + pe.fl) * pe.sw * Math.min(1, pt / 400);
-        var py = c[1] + pe.vy * ps * dr + 0.00006 * pt * pt * ps;
-        var pa = Math.min(1, pt / 120) * (pu < 0.6 ? 1 : 1 - (pu - 0.6) / 0.4) * clamp((H - py) / 70, 0, 1);
-        if (pa <= 0) continue;
-        g.save(); g.translate(px, py); g.rotate(pe.rot + pe.vr * pt); g.scale(pe.s * pz * Math.cos(pe.fl + pe.vf * pt), pe.s * pz);
-        g.globalAlpha = pa; g.drawImage(sprites[pe.sp], -24, -32); g.restore();
+      label(narrow ? "ATTACKED" : "THREE FROM ATTACKED QUERIES", X(0.885), ly - 48 * k, caps(11.5 * k), ROSE, E(t, 2300, 2600) * keep * (1 - E(t, 3500, 3800)));
+      // the weighted mean is pulled out of the Zone; the median, a crystal heart, stays inside
+      var mt = E(t, 2800, 3500), mv = (LO + HI) / 2 + (MEANV - (LO + HI) / 2) * easeOut(mt), ma = E(t, 2750, 2950) * keep;
+      if (ma > 0) {
+        var mx = X(mv);
+        g.save(); g.globalAlpha = ma; g.fillStyle = MEAN;
+        g.beginPath(); g.moveTo(mx, ly + 20 * k); g.lineTo(mx - 11 * k, ly + 40 * k); g.lineTo(mx + 11 * k, ly + 40 * k); g.closePath(); g.fill();
+        g.restore();
+        label("weighted mean", mx, ly + 56 * k, serif(19 * k, "italic 600"), "#ffb0c8", ma);
       }
-      g.globalAlpha = 1;
-
-      if (t < DUR) raf = requestAnimationFrame(frame);
-      else stop();
+      var ht = E(t, 3050, 3650), hy = ly - 42 * k - easeOutBack(ht) * 4 * k;
+      var hs = 34 * k * Math.max(0, easeOutBack(ht));
+      var hx = X(MED), ha = E(t, 3050, 3200);
+      // 5. the heart flies into the emblem above the title
+      var fl = E(t, FLY0, FLY1), em = emblemAt();
+      if (fl > 0) {
+        var ef = easeInOut(fl), cx1 = (hx + em[0]) / 2, cy1 = Math.min(hy, em[1]) - 120 * k;
+        var u1 = 1 - ef;
+        hx = u1 * u1 * hx + 2 * u1 * ef * cx1 + ef * ef * em[0];
+        hy = u1 * u1 * hy + 2 * u1 * ef * cy1 + ef * ef * em[1];
+        hs = hs + (em[2] * 0.95 - hs) * ef;
+      }
+      if (ht > 0 && t < T) {
+        g.globalCompositeOperation = "lighter"; glow(hx, hy, hs * 1.6, ROSE, 0.35 * ha); g.globalCompositeOperation = "source-over";
+        heart(hx, hy, hs, ha);
+        label("median", X(MED), ly - 86 * k, serif(19 * k, "italic 600"), MIST, E(t, 3200, 3450) * keep);
+      }
+      // 4. the count over the evaluation
+      var ca = E(t, 3650, 3950) * keep, cn = Math.round(53704 * easeOut(E(t, 3700, 4350)));
+      if (ca > 0) {
+        var cy = ly + 112 * k;
+        if (narrow) {
+          label("0", W / 2, cy, sans(34 * k, "700"), MIST, ca);
+          label("times the median left the clean range,", W / 2, cy + 26 * k, sans(13 * k), "#e6defc", ca);
+          label("in " + cn.toLocaleString("en-US") + " timesteps", W / 2, cy + 44 * k, sans(13 * k), "#e6defc", ca);
+          label("81\u201393%", W / 2, cy + 82 * k, sans(26 * k, "700"), "#ffb0c8", ca);
+          label("of them, the weighted mean did", W / 2, cy + 106 * k, sans(13 * k), "#e6defc", ca);
+        } else {
+        label("0", W / 2 - 150 * k, cy, sans(40 * k, "700"), MIST, ca, "right");
+        label("times the median left the clean range, in " + cn.toLocaleString("en-US") + " timesteps", W / 2 - 132 * k, cy, sans(15 * k), "#e6defc", ca, "left");
+        label("81\u201393%", W / 2 - 150 * k, cy + 46 * k, sans(28 * k, "700"), "#ffb0c8", ca, "right");
+        label("of them, the weighted mean did", W / 2 - 132 * k, cy + 46 * k, sans(15 * k), "#e6defc", ca, "left");
+        }
+      }
+      // the page opens from the emblem: a hole in the night that grows from it
+      var op = E(t, OPEN0, T);
+      if (op > 0) {
+        var rr = Math.hypot(W, H) * easeInOut(op);
+        g.save(); g.globalCompositeOperation = "destination-out";
+        var hg = g.createRadialGradient(em[0], em[1], rr * 0.82, em[0], em[1], rr + 2);
+        hg.addColorStop(0, "rgba(0,0,0,1)"); hg.addColorStop(1, "rgba(0,0,0,0)");
+        g.fillStyle = hg; g.beginPath(); g.arc(em[0], em[1], rr + 2, 0, TAU); g.fill();
+        g.fillStyle = "#000"; g.beginPath(); g.arc(em[0], em[1], rr * 0.82, 0, TAU); g.fill();
+        g.restore();
+        g.strokeStyle = rgba(MIST, 0.7 * (1 - op)); g.lineWidth = 2; g.beginPath(); g.arc(em[0], em[1], rr, 0, TAU); g.stroke();
+      }
     }
-    function stop() {
+
+    function frame(now) {
+      var t = now - t0;
+      draw(Math.min(t, T));
+      if (t >= T) finish(); else raf = requestAnimationFrame(frame);
+    }
+    function finish() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0; playing = false;
+      doc.classList.remove("fx-on");
+      root.style.opacity = ""; root.style.background = "";
+      g.clearRect(0, 0, W, H);
+      if (emblem) { emblem.classList.remove("lit"); void emblem.getBoundingClientRect(); emblem.classList.add("lit"); }
+    }
+    function skip(ev) {                           // the press that ends the opening does nothing else
+      if (!doc.classList.contains("fx-on")) return;
+      ev.preventDefault(); ev.stopPropagation();
+      hold = -1; playing = false;
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
-      if (g) g.clearRect(0, 0, W, H);
-      if (cv) cv.hidden = true;
-      if (dark) { dark = false; hero.classList.remove("night"); }
+      root.style.transition = "opacity .28s"; root.style.opacity = "0";
+      setTimeout(function () { root.style.transition = ""; finish(); }, 300);
     }
+    ["click", "keydown", "wheel", "touchstart"].forEach(function (type) {
+      window.addEventListener(type, skip, { capture: true, passive: false });
+    });
+    window.addEventListener("resize", debounce(function () { if (doc.classList.contains("fx-on")) { size(); if (hold >= 0) draw(hold * T); } }, 120));
     function play() {
-      if (reduce || document.hidden || !hero) return;
-      if (!cv) {
-        cv = document.createElement("canvas");
-        cv.className = "reverie"; cv.setAttribute("aria-hidden", "true");
-        hero.insertBefore(cv, hero.firstChild);
-        g = cv.getContext("2d");
-        sprites = makeSprites();
-        document.addEventListener("visibilitychange", function () { if (document.hidden && raf) stop(); });
-      }
-      cv.hidden = false; W = H = 0; size(); spawn();
-      dark = true; hero.classList.add("night");
-      t0 = performance.now();
-      if (!raf) raf = requestAnimationFrame(frame);
+      if (reduce) { finish(); return; }
+      if (playing) return;
+      window.scrollTo(0, 0);
+      doc.classList.add("fx-on");
+      size();
+      root.style.background = "transparent";      // the canvas paints the night from here on
+      if (hold >= 0) { draw(hold * T); return; }
+      playing = true; t0 = performance.now();
+      raf = requestAnimationFrame(frame);
     }
-    return { play: play };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (hold >= 0) draw(hold * T); });
+    return { play: play, active: function () { return doc.classList.contains("fx-on"); } };
   }
 
   // ── wire up ─────────────────────────────────────────────────────────────
@@ -974,11 +859,11 @@
   }
   bars();
   wreathAround(document.querySelector(".wreath"));
-  try {                                           // the opening once (at the top of the page), again on the title
-    var reverie = initReverie(), title = document.querySelector(".hero h1");
-    if ((window.scrollY || 0) < 160) setTimeout(reverie.play, 300);
-    if (title) title.addEventListener("click", reverie.play);
-  } catch (e) { console.error(e); }
+  try {                                           // the opening on arrival (the head set html.fx-on), again on the title
+    var intro = initIntro(), title = document.querySelector(".hero h1");
+    if (document.documentElement.classList.contains("fx-on")) intro.play();
+    if (title) title.addEventListener("click", function () { if (!intro.active()) intro.play(); });
+  } catch (e) { console.error(e); document.documentElement.classList.remove("fx-on"); }
 
   var cb = document.getElementById("copyBib");
   cb.addEventListener("click", function () {

@@ -14,6 +14,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600;1,700&family=Marcellus+SC&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="static/css/style.css" />
+  <!-- the opening covers the page from the first paint; ?still or reduced motion skips it, and it lifts by itself
+       if the page script never takes over -->
+  <script>
+    (function () {
+      var still = /[?&]still\b/.test(location.search);
+      var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (still || calm) return;
+      document.documentElement.classList.add("fx-on");
+      setTimeout(function () { if (!window.__introTook) document.documentElement.classList.remove("fx-on"); }, 7000);
+    })();
+  </script>
 </head>
 <body>
 
@@ -51,6 +62,8 @@
     <path d="M24 60C2 46 2 14 16 5 20 8 24 9 24 9s4-1 8-4c14 9 14 41-8 55Z" fill="url(#g-petal)" stroke="#fff" stroke-opacity=".7" />
   </symbol>
 </svg>
+
+<div id="intro" aria-hidden="true"><canvas></canvas><p class="intro-skip">Click or press any key to skip</p></div>
 
 <a class="skip" href="#problem">Skip to content</a>
 
@@ -111,6 +124,7 @@
 
   <div class="container">
     <div class="hero-head">
+      <svg class="emblem" aria-hidden="true"><use href="#heartmark" /></svg>
       <span class="eyebrow"><i class="gem-dot"></i>Robot learning &middot; Robust aggregation &middot; Training-free<i class="gem-dot"></i></span>
       <h1 class="title" title="Play the opening again">Median Temporal <span class="iris">Ensembling</span></h1>
       <p class="subtitle">Training-Free Robust Aggregation for Action-Chunked Visuomotor Policies</p>

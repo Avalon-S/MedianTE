@@ -114,7 +114,6 @@ code, pre, .mono { font-family: var(--mono); }
 .petal.p5 { left: 27%; top: 470px; transform: rotate(70deg) scale(.6); opacity: .6; }
 .infinity { position: absolute; left: 50%; top: 210px; width: min(980px, 92vw); height: 250px; transform: translateX(-50%);
   opacity: .5; transition: opacity .5s; }
-.hero.night .infinity, .hero.night .petal { opacity: 0; }
 @media (max-width: 900px) { .heir, .petal { display: none; } }
 
 .eyebrow { display: inline-flex; align-items: center; gap: 12px; font: 13px/1.3 var(--caps); letter-spacing: .2em;
@@ -142,23 +141,27 @@ code, pre, .mono { font-family: var(--mono); }
 .btn.soon:hover { transform: none; box-shadow: none; border-color: var(--line); }
 .btn .tag { font: 10.5px/1 var(--caps); letter-spacing: .12em; color: var(--accent); border: 1px solid var(--line); padding: 3px 6px; border-radius: 999px; }
 
-/* The opening effect (static/js/app.js, initReverie) plays on a canvas behind the hero's text. While it is night
-   there, the text turns light; the colours are registered so that they fade instead of jumping. */
-@property --h1a { syntax: "<color>"; inherits: true; initial-value: #2a1f3d; }
-@property --h1b { syntax: "<color>"; inherits: true; initial-value: #6a4fd8; }
-@property --h1c { syntax: "<color>"; inherits: true; initial-value: #c24d98; }
-@property --h-sub { syntax: "<color>"; inherits: true; initial-value: #5b5070; }
-@property --h-meta { syntax: "<color>"; inherits: true; initial-value: #8e84a0; }
-@property --h-link { syntax: "<color>"; inherits: true; initial-value: #6a4fd8; }
-.hero { --h1a: var(--ink); --h1b: var(--primary); --h1c: #c24d98; --h-sub: var(--ink-2); --h-meta: var(--ink-3);
-  --h-link: var(--primary); transition: --h1a .6s, --h1b .6s, --h1c .6s, --h-sub .6s, --h-meta .6s, --h-link .6s; }
-.hero.night { --h1a: #ffffff; --h1b: #cdbdff; --h1c: #ff9fd2; --h-sub: #e6defc; --h-meta: #c9bfe6; --h-link: #c7b5ff;
-  transition-duration: .45s; }
+/* hero text colours, in one place */
+.hero { --h1a: var(--ink); --h1b: var(--primary); --h1c: #c24d98; --h-sub: var(--ink-2); --h-meta: var(--ink-3); --h-link: var(--primary); }
 .hero .author a { color: var(--h1a); }
 .hero .author a:hover { color: var(--h-link); }
 .hero .affil { color: var(--h-meta); }
 .hero .affil a { color: var(--h-link); }
-.hero > .reverie { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+/* the emblem above the title: the crystal heart the opening flies into, lit once when it lands */
+.emblem { display: block; width: 44px; height: 44px; margin: 0 auto 16px; filter: drop-shadow(0 4px 10px rgba(106, 79, 216, .25)); }
+.emblem.lit { animation: emblem-lit 1.3s cubic-bezier(.2, .8, .2, 1); }
+@keyframes emblem-lit {
+  0% { transform: scale(1.35); filter: drop-shadow(0 0 22px rgba(255, 159, 210, .95)); }
+  100% { transform: none; filter: drop-shadow(0 4px 10px rgba(106, 79, 216, .25)); } }
+
+/* the opening (static/js/app.js, initIntro): it covers the window from the first paint (html.fx-on, set in the head) */
+#intro { position: fixed; inset: 0; z-index: 100; display: none; background: radial-gradient(ellipse at 50% 55%, #3a2577 0%, #1b1347 55%, #120c30 100%); }
+html.fx-on #intro { display: block; }
+html.fx-on body { overflow: hidden; }
+#intro canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.intro-skip { position: absolute; left: 0; right: 0; bottom: 18px; margin: 0; text-align: center; font: 12.5px/1 var(--sans);
+  color: rgba(230, 222, 252, .55); letter-spacing: .04em; pointer-events: none; }
 
 /* ── hero widget: the predictions the action now is made of ── */
 .hero-stage { margin: 46px auto 0; max-width: 980px; text-align: left; }
@@ -328,6 +331,6 @@ p, li, .tldr, .guarantee div, .status span, .mini p { text-wrap: pretty; }
 .zone-in { animation: zone-in .6s cubic-bezier(.2, .8, .2, 1) both; transform-box: fill-box; transform-origin: center; }
 @keyframes zone-in { from { opacity: 0; transform: scale(.5, .8); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .hero > .reverie { display: none; } .zone-in { animation: none; } .heir { animation: none; }
+  #intro { display: none !important; } .emblem.lit { animation: none; } .zone-in { animation: none; } .heir { animation: none; }
   .rip-drop, .rip-mark, .rip-cell { transition: none; }
 }
